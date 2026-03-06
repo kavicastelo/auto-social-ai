@@ -33,3 +33,9 @@ export async function getById(request: FastifyRequest<{ Params: { id: string } }
     const pipeline = await automationService.getPipelineById(request.params.id, request.user.wsId);
     sendSuccess(reply, pipeline);
 }
+
+/** POST /api/automation/:id/trigger */
+export async function trigger(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    const result = await automationService.triggerPipeline(request.params.id, request.user.wsId);
+    sendSuccess(reply, result, 200);
+}

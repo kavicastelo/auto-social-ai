@@ -24,6 +24,7 @@ import { accountsRoutes } from './modules/accounts/routes.js';
 import { analyticsRoutes } from './modules/analytics/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
 import { automationRoutes } from './modules/automation/routes.js';
+import { systemRoutes } from './modules/system/routes.js';
 
 // Workers (imported for side-effect — starts processing)
 import './workers/index.js';
@@ -92,6 +93,7 @@ async function buildApp() {
     await app.register(analyticsRoutes, { prefix: '/api/analytics' });
     await app.register(mediaRoutes, { prefix: '/api/media' });
     await app.register(automationRoutes, { prefix: '/api/automation' });
+    await app.register(systemRoutes, { prefix: '/api/system' });
 
     return app;
 }

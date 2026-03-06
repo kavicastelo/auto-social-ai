@@ -2,10 +2,9 @@
 // Analytics Module — Service
 // =============================================================================
 
-import { prisma } from '../../database/index.js';
+import { prisma, type Platform } from '../../database/index.js';
 import type { AnalyticsQueryInput } from './schema.js';
 import type { AnalyticsOverviewDTO, PlatformMetrics, DailyMetric } from '@auto-social-ai/shared';
-import type { Platform } from '@prisma/client';
 
 /** Get analytics overview for a workspace */
 export async function getOverview(

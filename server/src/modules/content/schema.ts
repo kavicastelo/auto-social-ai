@@ -8,12 +8,11 @@ const platformEnum = z.enum(['twitter', 'instagram', 'facebook', 'linkedin', 'ti
 const statusEnum = z.enum(['draft', 'generated', 'edited', 'approved', 'published', 'archived']);
 
 export const generateContentSchema = z.object({
-    prompt: z.string().min(10, 'Prompt must be at least 10 characters').max(2000),
+    topic: z.string().min(5, 'Topic must be at least 5 characters').max(2000),
     platform: platformEnum,
     tone: z.string().max(50).optional(),
-    maxLength: z.number().int().min(50).max(5000).optional(),
+    contentType: z.string().min(2, 'ContentType is required'),
 });
-
 export const editContentSchema = z.object({
     title: z.string().min(1).max(200).optional(),
     body: z.string().min(1).max(10000).optional(),

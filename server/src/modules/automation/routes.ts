@@ -13,4 +13,5 @@ export async function automationRoutes(app: FastifyInstance): Promise<void> {
     app.get('/', controller.list);
     app.get('/:id', controller.getById);
     app.put('/:id', controller.update);
+    app.post('/:id/trigger', controller.trigger);
 }

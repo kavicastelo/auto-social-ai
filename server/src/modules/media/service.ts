@@ -2,11 +2,12 @@
 // Media Module — Service
 // =============================================================================
 
-import { prisma } from '../../database/index.js';
+import { prisma, type MediaAsset, type MediaType } from '../../database/index.js';
 import { NotFoundError } from '../../utils/errors.js';
 import type { MediaQueryInput } from './schema.js';
 import type { MediaAssetDTO, PaginationMeta } from '@auto-social-ai/shared';
-import type { MediaAsset, MediaType } from '@prisma/client';
+import { mediaGenerationQueue } from '../../queues/index.js';
+import type { GenerateMediaInput } from './schema.js';
 
 /** Determine media type from MIME type */
 function getMediaType(mimeType: string): MediaType {
@@ -32,6 +33,34 @@ export async function createMediaAsset(
             type: mediaType,
             workspaceId,
         },
+    });
+
+    return toMediaDTO(asset);
+}
+
+/** Generate a simple quote image and enqueue it to be processed async */
+export async function generateMedia(
+    input: GenerateMediaInput,
+    workspaceId: string,
+): Promise<MediaAssetDTO> {
+    // Create an empty dummy asset to return its ID immediately
+    const asset = await prisma.mediaAsset.create({
+        data: {
+            filename: 'generating...',
+            originalName: 'quote.png',
+            mimeType: 'image/png',
+            size: 0,
+            url: 'generating...',
+            type: 'image',
+            workspaceId,
+        },
+    });
+
+    await mediaGenerationQueue.add('generate-media', {
+        mediaAssetId: asset.id,
+        quote: input.quote,
+        author: input.author,
+        theme: input.theme,
     });
 
     return toMediaDTO(asset);

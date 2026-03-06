@@ -2,12 +2,11 @@
 // Scheduler Module — Service
 // =============================================================================
 
-import { prisma } from '../../database/index.js';
+import { prisma, type ScheduledPost } from '../../database/index.js';
 import { NotFoundError, BadRequestError } from '../../utils/errors.js';
 import { publishQueue } from '../../queues/index.js';
 import type { CreateScheduledPostInput, UpdateScheduledPostInput, SchedulerQueryInput } from './schema.js';
 import type { ScheduledPostDTO, PaginationMeta } from '@auto-social-ai/shared';
-import type { ScheduledPost } from '@prisma/client';
 
 /** Create a new scheduled post and enqueue it for publishing */
 export async function createScheduledPost(
@@ -23,7 +22,7 @@ export async function createScheduledPost(
     if (!content) throw new NotFoundError('Content');
     if (!account) throw new NotFoundError('Social Account');
 
-    const scheduledAt = new Date(input.scheduledAt);
+    const scheduledAt = new Date(input.publishTime);
     if (scheduledAt <= new Date()) {
         throw new BadRequestError('Scheduled time must be in the future');
     }
@@ -72,7 +71,7 @@ export async function updateScheduledPost(
     const post = await prisma.scheduledPost.update({
         where: { id },
         data: {
-            ...(input.scheduledAt && { scheduledAt: new Date(input.scheduledAt) }),
+            ...(input.publishTime && { scheduledAt: new Date(input.publishTime) }),
             ...(input.status && { status: input.status }),
         },
         include: { account: true },

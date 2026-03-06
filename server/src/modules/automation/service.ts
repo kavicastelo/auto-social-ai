@@ -2,11 +2,11 @@
 // Automation Module — Service
 // =============================================================================
 
-import { prisma } from '../../database/index.js';
+import { prisma, type AutomationPipeline, type Platform, type PipelineStatus, type TriggerType } from '../../database/index.js';
 import { NotFoundError } from '../../utils/errors.js';
+import { automationQueue } from '../../queues/index.js';
 import type { CreatePipelineInput, UpdatePipelineInput, AutomationQueryInput } from './schema.js';
 import type { AutomationPipelineDTO, PaginationMeta } from '@auto-social-ai/shared';
-import type { AutomationPipeline, Platform, PipelineStatus, TriggerType } from '@prisma/client';
 
 /** Create a new automation pipeline */
 export async function createPipeline(
@@ -94,6 +94,21 @@ export async function getPipelineById(id: string, workspaceId: string): Promise<
     if (!pipeline) throw new NotFoundError('Automation Pipeline');
 
     return toPipelineDTO(pipeline);
+}
+
+/** Trigger a pipeline manually */
+export async function triggerPipeline(id: string, workspaceId: string): Promise<{ success: boolean; jobId: string }> {
+    const pipeline = await prisma.automationPipeline.findFirst({
+        where: { id, workspaceId, status: 'active' },
+    });
+
+    if (!pipeline) throw new NotFoundError('Active Automation Pipeline');
+
+    const job = await automationQueue.add('automation-pipeline', {
+        pipelineId: pipeline.id,
+    });
+
+    return { success: true, jobId: job.id as string };
 }
 
 /** Map Prisma AutomationPipeline to DTO */
