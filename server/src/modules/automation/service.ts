@@ -1,0 +1,115 @@
+// =============================================================================
+// Automation Module — Service
+// =============================================================================
+
+import { prisma } from '../../database/index.js';
+import { NotFoundError } from '../../utils/errors.js';
+import type { CreatePipelineInput, UpdatePipelineInput, AutomationQueryInput } from './schema.js';
+import type { AutomationPipelineDTO, PaginationMeta } from '@auto-social-ai/shared';
+import type { AutomationPipeline, Platform, PipelineStatus, TriggerType } from '@prisma/client';
+
+/** Create a new automation pipeline */
+export async function createPipeline(
+    input: CreatePipelineInput,
+    workspaceId: string,
+): Promise<AutomationPipelineDTO> {
+    const pipeline = await prisma.automationPipeline.create({
+        data: {
+            name: input.name,
+            description: input.description,
+            triggerType: input.triggerType as TriggerType,
+            platforms: input.platforms as Platform[],
+            config: input.config as any,
+            workspaceId,
+        },
+    });
+
+    return toPipelineDTO(pipeline);
+}
+
+/** Update an existing pipeline */
+export async function updatePipeline(
+    id: string,
+    input: UpdatePipelineInput,
+    workspaceId: string,
+): Promise<AutomationPipelineDTO> {
+    const existing = await prisma.automationPipeline.findFirst({
+        where: { id, workspaceId },
+    });
+
+    if (!existing) throw new NotFoundError('Automation Pipeline');
+
+    const pipeline = await prisma.automationPipeline.update({
+        where: { id },
+        data: {
+            ...(input.name !== undefined && { name: input.name }),
+            ...(input.description !== undefined && { description: input.description }),
+            ...(input.status !== undefined && { status: input.status as PipelineStatus }),
+            ...(input.triggerType !== undefined && { triggerType: input.triggerType as TriggerType }),
+            ...(input.platforms !== undefined && { platforms: input.platforms as Platform[] }),
+            ...(input.config !== undefined && { config: input.config as any }),
+        },
+    });
+
+    return toPipelineDTO(pipeline);
+}
+
+/** List pipelines with pagination */
+export async function listPipelines(
+    query: AutomationQueryInput,
+    workspaceId: string,
+): Promise<{ items: AutomationPipelineDTO[]; meta: PaginationMeta }> {
+    const where = {
+        workspaceId,
+        ...(query.status && { status: query.status as PipelineStatus }),
+    };
+
+    const [items, total] = await prisma.$transaction([
+        prisma.automationPipeline.findMany({
+            where,
+            skip: (query.page - 1) * query.limit,
+            take: query.limit,
+            orderBy: { createdAt: 'desc' },
+        }),
+        prisma.automationPipeline.count({ where }),
+    ]);
+
+    return {
+        items: items.map(toPipelineDTO),
+        meta: {
+            page: query.page,
+            limit: query.limit,
+            total,
+            totalPages: Math.ceil(total / query.limit),
+        },
+    };
+}
+
+/** Get a single pipeline */
+export async function getPipelineById(id: string, workspaceId: string): Promise<AutomationPipelineDTO> {
+    const pipeline = await prisma.automationPipeline.findFirst({
+        where: { id, workspaceId },
+    });
+
+    if (!pipeline) throw new NotFoundError('Automation Pipeline');
+
+    return toPipelineDTO(pipeline);
+}
+
+/** Map Prisma AutomationPipeline to DTO */
+function toPipelineDTO(pipeline: AutomationPipeline): AutomationPipelineDTO {
+    return {
+        id: pipeline.id,
+        name: pipeline.name,
+        description: pipeline.description,
+        status: pipeline.status as AutomationPipelineDTO['status'],
+        triggerType: pipeline.triggerType as AutomationPipelineDTO['triggerType'],
+        platforms: pipeline.platforms as AutomationPipelineDTO['platforms'],
+        config: pipeline.config as Record<string, unknown>,
+        workspaceId: pipeline.workspaceId,
+        lastRunAt: pipeline.lastRunAt?.toISOString() ?? null,
+        runCount: pipeline.runCount,
+        createdAt: pipeline.createdAt.toISOString(),
+        updatedAt: pipeline.updatedAt.toISOString(),
+    };
+}

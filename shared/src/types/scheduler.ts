@@ -1,0 +1,33 @@
+// =============================================================================
+// Scheduler Types — Request / Response DTOs
+// =============================================================================
+
+import type { BaseEntity, ISODateString } from './common.js';
+import type { Platform } from './content.js';
+
+/** Scheduled post status */
+export type ScheduleStatus = 'pending' | 'queued' | 'publishing' | 'published' | 'failed' | 'cancelled';
+
+/** Create scheduled post request */
+export interface CreateScheduledPostRequest {
+    contentId: string;
+    accountId: string;
+    scheduledAt: ISODateString;
+}
+
+/** Update scheduled post request */
+export interface UpdateScheduledPostRequest {
+    scheduledAt?: ISODateString;
+    status?: ScheduleStatus;
+}
+
+/** Scheduled post DTO */
+export interface ScheduledPostDTO extends BaseEntity {
+    contentId: string;
+    accountId: string;
+    platform: Platform;
+    scheduledAt: ISODateString;
+    publishedAt: ISODateString | null;
+    status: ScheduleStatus;
+    failureReason: string | null;
+}

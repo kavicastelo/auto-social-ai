@@ -1,0 +1,39 @@
+{
+    "name": "@auto-social-ai/client",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "npx vite",
+        "build": "npx vite build",
+        "lint": "eslint .",
+        "preview": "npx vite preview"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.13.3",
+        "@xyflow/react": "^12.3.0",
+        "lucide-react": "0.522.0",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "recharts": "^2.12.7"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/node": "^24.10.1",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.25.0",
+        "@typescript-eslint/parser": "^8.25.0",
+        "@vitejs/plugin-react": "^5.1.1",
+        "autoprefixer": "latest",
+        "eslint": "^9.39.1",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-react-refresh": "^0.4.24",
+        "globals": "^17.4.0",
+        "postcss": "latest",
+        "tailwindcss": "3.4.17",
+        "typescript": "~5.9.3",
+        "typescript-eslint": "^8.56.1",
+        "vite": "^7.3.1"
+    }
+}

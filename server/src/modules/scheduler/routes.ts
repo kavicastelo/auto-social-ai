@@ -1,0 +1,15 @@
+// =============================================================================
+// Scheduler Module — Routes
+// =============================================================================
+
+import type { FastifyInstance } from 'fastify';
+import { authGuard } from '../../middleware/index.js';
+import * as controller from './controller.js';
+
+export async function schedulerRoutes(app: FastifyInstance): Promise<void> {
+    app.addHook('preHandler', authGuard);
+
+    app.post('/create', controller.create);
+    app.put('/:id', controller.update);
+    app.get('/', controller.list);
+}

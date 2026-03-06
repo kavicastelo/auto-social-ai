@@ -1,0 +1,275 @@
+// =============================================================================
+// Prisma Schema — Auto Social AI
+// =============================================================================
+// Normalized schema with proper indexes, enums, and relationships.
+// Run `npx prisma migrate dev` to apply changes.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+enum Platform {
+  twitter
+  instagram
+  facebook
+  linkedin
+  tiktok
+}
+
+enum ContentStatus {
+  draft
+  generated
+  edited
+  approved
+  published
+  archived
+}
+
+enum ScheduleStatus {
+  pending
+  queued
+  publishing
+  published
+  failed
+  cancelled
+}
+
+enum AccountStatus {
+  connected
+  disconnected
+  expired
+  error
+}
+
+enum PipelineStatus {
+  active
+  paused
+  draft
+  error
+}
+
+enum TriggerType {
+  schedule
+  webhook
+  event
+  manual
+}
+
+enum MediaType {
+  image
+  video
+  gif
+}
+
+// ── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  avatarUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  workspaces WorkspaceMember[]
+  contents   Content[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  slug        String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members    WorkspaceMember[]
+  accounts   SocialAccount[]
+  contents   Content[]
+  posts      ScheduledPost[]
+  pipelines  AutomationPipeline[]
+  media      MediaAsset[]
+  analytics  AnalyticsEvent[]
+
+  @@index([slug])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String @id @default(cuid())
+  role        String @default("member") // owner | admin | member
+
+  userId      String
+  workspaceId String
+
+  createdAt DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@map("workspace_members")
+}
+
+model SocialAccount {
+  id               String        @id @default(cuid())
+  platform         Platform
+  platformUserId   String
+  platformUsername String
+  accessToken      String
+  refreshToken     String?
+  tokenExpiresAt   DateTime?
+  avatarUrl        String?
+  status           AccountStatus @default(connected)
+
+  workspaceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  posts     ScheduledPost[]
+
+  @@unique([platform, platformUserId, workspaceId])
+  @@index([workspaceId])
+  @@index([platform])
+  @@map("social_accounts")
+}
+
+model Content {
+  id       String        @id @default(cuid())
+  title    String
+  body     String        @db.Text
+  platform Platform
+  status   ContentStatus @default(draft)
+  tags     String[]
+
+  authorId    String
+  workspaceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  posts     ScheduledPost[]
+
+  @@index([workspaceId])
+  @@index([authorId])
+  @@index([status])
+  @@index([platform])
+  @@map("contents")
+}
+
+model ScheduledPost {
+  id            String         @id @default(cuid())
+  scheduledAt   DateTime
+  publishedAt   DateTime?
+  status        ScheduleStatus @default(pending)
+  failureReason String?
+
+  contentId   String
+  accountId   String
+  workspaceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  content   Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  account   SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("scheduled_posts")
+}
+
+model AutomationPipeline {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  status      PipelineStatus @default(draft)
+  triggerType TriggerType
+  platforms   Platform[]
+  config      Json           @default("{}")
+
+  lastRunAt DateTime?
+  runCount  Int       @default(0)
+
+  workspaceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@map("automation_pipelines")
+}
+
+model MediaAsset {
+  id           String    @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  type         MediaType
+
+  workspaceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([type])
+  @@map("media_assets")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  event      String   // e.g., "post_published", "engagement_received"
+  platform   Platform
+  data       Json     @default("{}")
+
+  workspaceId String
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([event])
+  @@index([platform])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
