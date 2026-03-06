@@ -10,6 +10,6 @@ export async function accountsRoutes(app: FastifyInstance): Promise<void> {
     app.addHook('preHandler', authGuard);
 
     app.post('/connect', controller.connect);
-    app.get('/list', controller.list);
+    app.get('/', controller.list);
     app.delete('/:id', controller.disconnect);
 }

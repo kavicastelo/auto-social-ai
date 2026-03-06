@@ -31,6 +31,8 @@ const envSchema = z.object({
 
     // Logging
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+    // AI
+    OPENAI_API_KEY: z.string().min(1, 'OpenAI API key is required').default('dummy_key'),
 });
 
 const parsed = envSchema.safeParse(process.env);

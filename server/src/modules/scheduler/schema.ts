@@ -8,12 +8,13 @@ const scheduleStatusEnum = z.enum(['pending', 'queued', 'publishing', 'published
 
 export const createScheduledPostSchema = z.object({
     contentId: z.string().min(1, 'Content ID is required'),
+    platform: z.string().optional(),
     accountId: z.string().min(1, 'Account ID is required'),
-    scheduledAt: z.string().datetime('Invalid datetime format'),
+    publishTime: z.string().datetime('Invalid datetime format'),
 });
 
 export const updateScheduledPostSchema = z.object({
-    scheduledAt: z.string().datetime().optional(),
+    publishTime: z.string().datetime().optional(),
     status: scheduleStatusEnum.optional(),
 });
 

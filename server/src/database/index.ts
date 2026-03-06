@@ -1,1 +1,2 @@
-export { prisma } from './prisma.js';
+export { prisma, Prisma } from './prisma.js';
+export * from './generated/index.js';

@@ -12,10 +12,10 @@ export type Platform = 'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tikt
 
 /** Content generation request */
 export interface GenerateContentRequest {
-    prompt: string;
+    topic: string;
     platform: Platform;
     tone?: string;
-    maxLength?: number;
+    contentType: string;
 }
 
 /** Content edit request */

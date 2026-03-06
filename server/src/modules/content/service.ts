@@ -2,32 +2,40 @@
 // Content Module — Service
 // =============================================================================
 
-import { prisma } from '../../database/index.js';
+import { prisma, type Content, type Platform } from '../../database/index.js';
 import { NotFoundError } from '../../utils/errors.js';
 import type { GenerateContentInput, EditContentInput, ContentQueryInput } from './schema.js';
 import type { ContentDTO, PaginationMeta } from '@auto-social-ai/shared';
-import type { Content, Platform } from '@prisma/client';
 
-/** Generate content (placeholder — replace with AI integration) */
+import { contentGenerationQueue } from '../../queues/index.js';
+
+/** Generate content (async queue) */
 export async function generateContent(
     input: GenerateContentInput,
     userId: string,
     workspaceId: string,
 ): Promise<ContentDTO> {
-    // TODO: Integrate with AI service (OpenAI, etc.)
-    const generatedBody = `Generated content for ${input.platform}: ${input.prompt}`;
-    const generatedTitle = input.prompt.slice(0, 100);
+    const generatedTitle = input.topic.slice(0, 100);
 
     const content = await prisma.content.create({
         data: {
             title: generatedTitle,
-            body: generatedBody,
+            body: 'Generating...', // placeholder
             platform: input.platform as Platform,
-            status: 'generated',
+            status: 'draft',
             tags: [],
             authorId: userId,
             workspaceId,
         },
+    });
+
+    // Enqueue generation job
+    await contentGenerationQueue.add('generate-content', {
+        contentId: content.id,
+        topic: input.topic,
+        platform: input.platform,
+        tone: input.tone,
+        contentType: input.contentType
     });
 
     return toContentDTO(content);

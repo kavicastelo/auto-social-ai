@@ -8,6 +8,8 @@ import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../services/redis.js';
 import { prisma } from '../database/index.js';
 import { logger } from '../utils/logger.js';
+import { decryptToken } from '../utils/crypto.js';
+import { publishers } from '../providers/index.js';
 
 interface PublishJobData {
     scheduledPostId: string;
@@ -43,15 +45,39 @@ export const publishWorker = new Worker<PublishJobData>(
                 data: { status: 'publishing' },
             });
 
-            // TODO: Replace with actual platform API integration
-            // For now, simulate a publish action
+            // Use real platform API integration
             log.info(
                 { platform: post.account.platform, username: post.account.platformUsername },
                 'Publishing content to platform',
             );
 
-            // Simulate network delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const publisher = publishers[post.account.platform];
+            if (!publisher) {
+                throw new Error(`No publisher found for platform: ${post.account.platform}`);
+            }
+
+            let finalContent = post.content.body;
+            if (publisher.validateContent) {
+                const isValid = publisher.validateContent(finalContent);
+                if (!isValid) throw new Error(`Content validation failed for ${post.account.platform}`);
+            }
+
+            const formattedContent = publisher.formatContent(finalContent);
+            const accessToken = decryptToken(post.account.accessToken);
+            const refreshToken = post.account.refreshToken ? decryptToken(post.account.refreshToken) : undefined;
+
+            const config = {
+                accessToken,
+                refreshToken,
+                platformUserId: post.account.platformUserId,
+                platformUsername: post.account.platformUsername
+            };
+
+            const publishResult = await publisher.publishPost(config, formattedContent);
+
+            if (!publishResult.success) {
+                throw new Error(`Failed to publish: ${publishResult.error || 'Unknown error'}`);
+            }
 
             // Mark as published
             await prisma.scheduledPost.update({

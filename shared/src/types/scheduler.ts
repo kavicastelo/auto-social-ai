@@ -11,13 +11,14 @@ export type ScheduleStatus = 'pending' | 'queued' | 'publishing' | 'published' |
 /** Create scheduled post request */
 export interface CreateScheduledPostRequest {
     contentId: string;
+    platform?: string;
     accountId: string;
-    scheduledAt: ISODateString;
+    publishTime: ISODateString;
 }
 
 /** Update scheduled post request */
 export interface UpdateScheduledPostRequest {
-    scheduledAt?: ISODateString;
+    publishTime?: ISODateString;
     status?: ScheduleStatus;
 }
 

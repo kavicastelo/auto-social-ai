@@ -12,4 +12,11 @@ export const mediaQuerySchema = z.object({
     type: mediaTypeEnum.optional(),
 });
 
+export const generateMediaSchema = z.object({
+    quote: z.string().min(1, 'Quote is required'),
+    author: z.string().optional(),
+    theme: z.string().optional(),
+});
+
 export type MediaQueryInput = z.infer<typeof mediaQuerySchema>;
+export type GenerateMediaInput = z.infer<typeof generateMediaSchema>;

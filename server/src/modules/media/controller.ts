@@ -3,7 +3,7 @@
 // =============================================================================
 
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { mediaQuerySchema } from './schema.js';
+import { mediaQuerySchema, generateMediaSchema } from './schema.js';
 import * as mediaService from './service.js';
 import { sendSuccess } from '../../utils/response.js';
 import { BadRequestError } from '../../utils/errors.js';
@@ -40,6 +40,13 @@ export async function upload(request: FastifyRequest, reply: FastifyReply): Prom
         request.user.wsId,
     );
 
+    sendSuccess(reply, asset, 201);
+}
+
+/** POST /api/media/generate */
+export async function generate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const input = generateMediaSchema.parse(request.body);
+    const asset = await mediaService.generateMedia(input, request.user.wsId);
     sendSuccess(reply, asset, 201);
 }
 

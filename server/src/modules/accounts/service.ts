@@ -2,11 +2,11 @@
 // Accounts Module — Service
 // =============================================================================
 
-import { prisma } from '../../database/index.js';
+import { prisma, type SocialAccount, type Platform } from '../../database/index.js';
+import { encryptToken } from '../../utils/crypto.js';
 import { ConflictError, NotFoundError } from '../../utils/errors.js';
 import type { ConnectAccountInput, AccountsQueryInput } from './schema.js';
 import type { SocialAccountDTO, PaginationMeta } from '@auto-social-ai/shared';
-import type { SocialAccount, Platform } from '@prisma/client';
 
 /** Connect a social account to the workspace */
 export async function connectAccount(
@@ -31,8 +31,8 @@ export async function connectAccount(
             platform: input.platform as Platform,
             platformUserId: input.platformUserId,
             platformUsername: input.platformUsername,
-            accessToken: input.accessToken,
-            refreshToken: input.refreshToken,
+            accessToken: encryptToken(input.accessToken),
+            refreshToken: input.refreshToken ? encryptToken(input.refreshToken) : null,
             workspaceId,
         },
     });
