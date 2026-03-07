@@ -1,3 +1,4 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   UploadIcon,
   SearchIcon,
@@ -5,96 +6,106 @@ import {
   ImageIcon,
   VideoIcon,
   FileTextIcon,
-  MoreVerticalIcon
-} from
-  'lucide-react';
+  MoreVerticalIcon,
+  Trash2Icon,
+  DownloadIcon
+} from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
-export function MediaLibraryPage() {
-  const mediaItems = [
-    {
-      id: 1,
-      name: 'Q3_Campaign_Hero.jpg',
-      type: 'image',
-      date: 'Aug 12, 2024',
-      size: '2.4 MB'
-    },
-    {
-      id: 2,
-      name: 'Product_Demo_Short.mp4',
-      type: 'video',
-      date: 'Aug 10, 2024',
-      size: '15.2 MB'
-    },
-    {
-      id: 3,
-      name: 'AI_Generated_Abstract.png',
-      type: 'image',
-      date: 'Aug 09, 2024',
-      size: '1.1 MB'
-    },
-    {
-      id: 4,
-      name: 'Carousel_Template_V2.fig',
-      type: 'template',
-      date: 'Aug 05, 2024',
-      size: '4.5 MB'
-    },
-    {
-      id: 5,
-      name: 'Team_Retreat_2024.jpg',
-      type: 'image',
-      date: 'Aug 01, 2024',
-      size: '3.8 MB'
-    },
-    {
-      id: 6,
-      name: 'Feature_Announcement.mp4',
-      type: 'video',
-      date: 'Jul 28, 2024',
-      size: '22.1 MB'
-    },
-    {
-      id: 7,
-      name: 'Infographic_Stats.png',
-      type: 'image',
-      date: 'Jul 25, 2024',
-      size: '1.9 MB'
-    },
-    {
-      id: 8,
-      name: 'Quote_Template_Dark.fig',
-      type: 'template',
-      date: 'Jul 20, 2024',
-      size: '2.2 MB'
-    }];
+import api from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-  const getIcon = (type: string) => {
+export function MediaLibraryPage() {
+  const { activeWorkspace } = useAuth();
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
+
+  const { data: mediaItems, isLoading } = useQuery({
+    queryKey: ['media-assets', activeWorkspace?.id],
+    queryFn: async () => {
+      const response = await api.get('/media');
+      return response.data.data;
+    },
+    enabled: !!activeWorkspace,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/media/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('File deleted');
+      queryClient.invalidateQueries({ queryKey: ['media-assets', activeWorkspace?.id] });
+    },
+    onError: () => {
+      toast.error('Failed to delete file');
+    }
+  });
+
+  const handleUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.onchange = async (e: any) => {
+      const files = e.target.files;
+      if (!files.length) return;
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      try {
+        await api.post('/media/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success('Upload complete');
+        queryClient.invalidateQueries({ queryKey: ['media-assets', activeWorkspace?.id] });
+      } catch (err) {
+        console.error('Upload failed:', err);
+        toast.error('Upload failed');
+      }
+    };
+    input.click();
+  };
+
+  const getFileIcon = (type: string) => {
     switch (type) {
       case 'image':
         return <ImageIcon className="h-8 w-8 text-violet-500 opacity-50" />;
       case 'video':
         return <VideoIcon className="h-8 w-8 text-blue-500 opacity-50" />;
-      case 'template':
-        return <FileTextIcon className="h-8 w-8 text-emerald-500 opacity-50" />;
       default:
-        return (
-          <ImageIcon className="h-8 w-8 text-muted-foreground opacity-50" />);
-
+        return <FileTextIcon className="h-8 w-8 text-muted-foreground opacity-50" />;
     }
   };
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const filteredItems = mediaItems?.filter((item: any) =>
+    item.originalName.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your images, videos, and templates.
+            Manage your images and videos for <strong>{activeWorkspace?.name}</strong>.
           </p>
         </div>
-        <Button variant="primary" className="gap-2">
+        <Button variant="primary" className="gap-2" onClick={handleUpload}>
           <UploadIcon className="h-4 w-4" />
           Upload Media
         </Button>
@@ -103,7 +114,12 @@ export function MediaLibraryPage() {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search files..." className="pl-9 bg-card" />
+          <Input
+            placeholder="Search files..."
+            className="pl-9 bg-card"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
         <Button variant="outline" className="gap-2 shrink-0">
           <FilterIcon className="h-4 w-4" />
@@ -112,52 +128,79 @@ export function MediaLibraryPage() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {mediaItems.map((item) =>
-          <Card
-            key={item.id}
-            className="group overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="animate-pulse bg-muted min-h-[200px]" />
+          ))
+        ) : filteredItems?.length > 0 ? (
+          filteredItems.map((item: any) => (
+            <Card
+              key={item.id}
+              className="group overflow-hidden hover:shadow-md transition-all duration-200">
 
-            <div className="aspect-video bg-muted flex items-center justify-center relative group-hover:bg-muted/80 transition-colors">
-              {getIcon(item.type)}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Button variant="secondary" size="sm">
-                  View
-                </Button>
-              </div>
-            </div>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="overflow-hidden">
-                  <p className="text-sm font-medium truncate" title={item.name}>
-                    {item.name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] px-1.5 py-0 capitalize">
+              <div className="aspect-video bg-muted flex items-center justify-center relative transition-colors group-hover:bg-muted/50">
+                {item.type === 'image' ? (
+                  <img src={item.url} alt={item.originalName} className="h-full w-full object-cover" />
+                ) : getFileIcon(item.type)}
 
-                      {item.type}
-                    </Badge>
-                    <span className="text-[10px] text-muted-foreground">
-                      {item.size}
-                    </span>
-                  </div>
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <a href={item.url} target="_blank" rel="noreferrer">
+                    <Button variant="secondary" size="icon" className="h-8 w-8">
+                      <DownloadIcon className="h-4 w-4" />
+                    </Button>
+                  </a>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      deleteMutation.mutate(item.id);
+                    }}
+                  >
+                    <Trash2Icon className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0 -mr-2 text-muted-foreground">
-
-                  <MoreVerticalIcon className="h-4 w-4" />
-                </Button>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-3">
-                {item.date}
-              </p>
-            </CardContent>
-          </Card>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-medium truncate" title={item.originalName}>
+                      {item.originalName}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] px-1.5 py-0 capitalize">
+                        {item.type}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatSize(item.size)}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0 -mr-2 text-muted-foreground">
+                    <MoreVerticalIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-3">
+                  Uploaded {new Date(item.createdAt).toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full py-12 text-center border-2 border-dashed rounded-xl bg-muted/20">
+            <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">No media found</h3>
+            <p className="text-muted-foreground max-w-xs mx-auto mt-1 mb-6">
+              Upload your project assets to use them in your social media posts.
+            </p>
+            <Button onClick={handleUpload} variant="outline">Upload First Asset</Button>
+          </div>
         )}
       </div>
     </div>);
-
 }

@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboardIcon,
   PenToolIcon,
@@ -10,26 +11,15 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   SparklesIcon
-} from
-  'lucide-react';
-export type PageType =
-  'dashboard' |
-  'content' |
-  'scheduler' |
-  'pipelines' |
-  'pages' |
-  'analytics' |
-  'media' |
-  'settings';
+} from 'lucide-react';
+import { cn } from '../../lib/utils';
+
 interface SidebarProps {
-  currentPage: PageType;
-  setCurrentPage: (page: PageType) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
 }
+
 export function Sidebar({
-  currentPage,
-  setCurrentPage,
   isCollapsed,
   setIsCollapsed
 }: SidebarProps) {
@@ -37,42 +27,52 @@ export function Sidebar({
     {
       id: 'dashboard',
       label: 'Dashboard',
-      icon: LayoutDashboardIcon
+      icon: LayoutDashboardIcon,
+      path: '/'
     },
     {
       id: 'content',
       label: 'Content Studio',
-      icon: PenToolIcon
+      icon: PenToolIcon,
+      path: '/content'
     },
     {
       id: 'scheduler',
       label: 'Post Scheduler',
-      icon: CalendarIcon
+      icon: CalendarIcon,
+      path: '/scheduler'
     },
     {
       id: 'pipelines',
       label: 'Automation',
-      icon: GitMergeIcon
+      icon: GitMergeIcon,
+      path: '/pipelines'
     },
     {
       id: 'pages',
       label: 'Pages Manager',
-      icon: UsersIcon
+      icon: UsersIcon,
+      path: '/pages'
     },
     {
       id: 'analytics',
       label: 'Analytics',
-      icon: BarChart3Icon
+      icon: BarChart3Icon,
+      path: '/analytics'
     },
     {
       id: 'media',
       label: 'Media Library',
-      icon: ImageIcon
+      icon: ImageIcon,
+      path: '/media'
     }];
 
   return (
     <aside
-      className={`relative flex flex-col border-r border-border bg-card transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+      className={cn(
+        "relative flex flex-col border-r border-border bg-card transition-all duration-300",
+        isCollapsed ? 'w-20' : 'w-64'
+      )}>
 
       {/* Logo Area */}
       <div className="flex h-16 items-center justify-center border-b border-border px-4">
@@ -93,36 +93,41 @@ export function Sidebar({
         <nav className="grid gap-1 px-3">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPage === item.id;
             return (
-              <button
+              <NavLink
                 key={item.id}
-                onClick={() => setCurrentPage(item.id as PageType)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive ? 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 text-violet-700 dark:text-violet-300' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                to={item.path}
+                className={({ isActive }) => cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? "bg-gradient-to-r from-violet-500/10 to-indigo-500/10 text-violet-700 dark:text-violet-300"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
                 title={isCollapsed ? item.label : undefined}>
 
-                <Icon
-                  className={`h-5 w-5 shrink-0 ${isActive ? 'text-violet-600 dark:text-violet-400' : ''}`} />
+                <Icon className="h-5 w-5 shrink-0" />
 
                 {!isCollapsed &&
                   <span className="whitespace-nowrap">{item.label}</span>
                 }
-              </button>);
-
+              </NavLink>);
           })}
         </nav>
       </div>
 
       {/* Bottom Actions */}
       <div className="border-t border-border p-3">
-        <button
-          onClick={() => setCurrentPage('settings')}
-          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground ${currentPage === 'settings' ? 'bg-muted text-foreground' : ''}`}
+        <NavLink
+          to="/settings"
+          className={({ isActive }) => cn(
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground",
+            isActive && "bg-muted text-foreground"
+          )}
           title={isCollapsed ? 'Settings' : undefined}>
 
           <SettingsIcon className="h-5 w-5 shrink-0" />
           {!isCollapsed && <span>Settings</span>}
-        </button>
+        </NavLink>
       </div>
 
       {/* Collapse Toggle */}
@@ -132,10 +137,8 @@ export function Sidebar({
 
         {isCollapsed ?
           <ChevronRightIcon className="h-4 w-4" /> :
-
           <ChevronLeftIcon className="h-4 w-4" />
         }
       </button>
     </aside>);
-
 }

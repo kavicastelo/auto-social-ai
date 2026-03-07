@@ -114,6 +114,21 @@ export async function getContentById(id: string, workspaceId: string): Promise<C
     return toContentDTO(content);
 }
 
+/** Delete content by ID */
+export async function removeContent(id: string, workspaceId: string): Promise<void> {
+    const existing = await prisma.content.findFirst({
+        where: { id, workspaceId },
+    });
+
+    if (!existing) {
+        throw new NotFoundError('Content');
+    }
+
+    await prisma.content.delete({
+        where: { id },
+    });
+}
+
 /** Map Prisma Content to DTO */
 function toContentDTO(content: Content): ContentDTO {
     return {

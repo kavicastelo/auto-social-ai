@@ -80,3 +80,16 @@ export async function refresh(request: FastifyRequest, reply: FastifyReply): Pro
         throw new UnauthorizedError('Invalid or expired refresh token');
     }
 }
+/** GET /api/auth/me */
+export async function getMe(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const data = await authService.getMe(request.user.sub);
+    sendSuccess(reply, data);
+}
+
+/** PUT /api/auth/me */
+export async function updateProfile(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { updateProfileSchema } = await import('./schema.js');
+    const input = updateProfileSchema.parse(request.body);
+    const user = await authService.updateProfile(request.user.sub, input);
+    sendSuccess(reply, user);
+}

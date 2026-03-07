@@ -111,6 +111,19 @@ export async function triggerPipeline(id: string, workspaceId: string): Promise<
     return { success: true, jobId: job.id as string };
 }
 
+/** Delete a pipeline */
+export async function removePipeline(id: string, workspaceId: string): Promise<void> {
+    const existing = await prisma.automationPipeline.findFirst({
+        where: { id, workspaceId },
+    });
+
+    if (!existing) throw new NotFoundError('Automation Pipeline');
+
+    await prisma.automationPipeline.delete({
+        where: { id },
+    });
+}
+
 /** Map Prisma AutomationPipeline to DTO */
 function toPipelineDTO(pipeline: AutomationPipeline): AutomationPipelineDTO {
     return {
