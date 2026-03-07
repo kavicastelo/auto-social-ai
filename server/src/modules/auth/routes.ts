@@ -9,4 +9,13 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     app.post('/register', controller.register);
     app.post('/login', controller.login);
     app.post('/refresh', controller.refresh);
+
+    // Protected routes
+    app.register(async (protectedRoutes) => {
+        const { authGuard } = await import('../../middleware/index.js');
+        protectedRoutes.addHook('preHandler', authGuard);
+
+        protectedRoutes.get('/me', controller.getMe);
+        protectedRoutes.put('/me', controller.updateProfile);
+    });
 }

@@ -25,6 +25,7 @@ import { analyticsRoutes } from './modules/analytics/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
 import { automationRoutes } from './modules/automation/routes.js';
 import { systemRoutes } from './modules/system/routes.js';
+import { workspacesRoutes } from './modules/workspaces/routes.js';
 
 // Workers (imported for side-effect — starts processing)
 import './workers/index.js';
@@ -47,12 +48,32 @@ async function buildApp() {
 
     // ── Plugins ────────────────────────────────────────────────────────────────
     await app.register(cors, {
-        origin: env.CLIENT_URL,
+        origin: [
+            env.CLIENT_URL,
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+            'http://localhost:4173', // Vite preview
+            'http://127.0.0.1:4173',
+        ],
         credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
     await app.register(helmet, {
-        contentSecurityPolicy: env.NODE_ENV === 'production',
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                imgSrc: ["'self'", 'data:', 'https:'],
+                connectSrc: ["'self'", env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+            },
+        },
+        xssFilter: true, // X-XSS-Protection header
+        noSniff: true,   // X-Content-Type-Options: nosniff
+        referrerPolicy: { policy: 'same-origin' },
+        hidePoweredBy: true,
     });
 
     await app.register(jwt, {
@@ -94,6 +115,7 @@ async function buildApp() {
     await app.register(mediaRoutes, { prefix: '/api/media' });
     await app.register(automationRoutes, { prefix: '/api/automation' });
     await app.register(systemRoutes, { prefix: '/api/system' });
+    await app.register(workspacesRoutes, { prefix: '/api/workspaces' });
 
     return app;
 }

@@ -39,3 +39,9 @@ export async function trigger(request: FastifyRequest<{ Params: { id: string } }
     const result = await automationService.triggerPipeline(request.params.id, request.user.wsId);
     sendSuccess(reply, result, 200);
 }
+
+/** DELETE /api/automation/:id */
+export async function remove(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    await automationService.removePipeline(request.params.id, request.user.wsId);
+    sendSuccess(reply, null);
+}

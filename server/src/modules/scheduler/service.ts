@@ -112,6 +112,41 @@ export async function listScheduledPosts(
     };
 }
 
+/** Get a scheduled post by ID */
+export async function getScheduledPostById(id: string, workspaceId: string): Promise<ScheduledPostDTO> {
+    const post = await prisma.scheduledPost.findFirst({
+        where: { id, workspaceId },
+        include: { account: true },
+    });
+
+    if (!post) throw new NotFoundError('Scheduled Post');
+
+    return toScheduledPostDTO(post);
+}
+
+/** Cancel a scheduled post (effectively deletes or sets status to cancelled) */
+export async function cancelScheduledPost(id: string, workspaceId: string): Promise<void> {
+    const existing = await prisma.scheduledPost.findFirst({
+        where: { id, workspaceId },
+    });
+
+    if (!existing) throw new NotFoundError('Scheduled Post');
+
+    // Opting to physically delete it or mark as cancelled based on the plan 
+    // "DELETE /scheduler/:id to cancel a queued post"
+    await prisma.scheduledPost.update({
+        where: { id },
+        data: { status: 'cancelled' },
+    });
+
+    // Attempt to remove from queue if possible, otherwise worker skips it if status is 'cancelled'
+    try {
+        await publishQueue.remove(`publish-${id}`);
+    } catch {
+        // Ignored
+    }
+}
+
 /** Map Prisma ScheduledPost to DTO */
 function toScheduledPostDTO(post: ScheduledPost & { account?: { platform: string } }): ScheduledPostDTO {
     return {

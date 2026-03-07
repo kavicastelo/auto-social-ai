@@ -13,4 +13,5 @@ export async function contentRoutes(app: FastifyInstance): Promise<void> {
     app.get('/', controller.list);
     app.get('/:id', controller.getById);
     app.patch('/:id', controller.edit);
+    app.delete('/:id', controller.remove);
 }

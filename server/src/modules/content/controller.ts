@@ -33,3 +33,9 @@ export async function getById(request: FastifyRequest<{ Params: { id: string } }
     const content = await contentService.getContentById(request.params.id, request.user.wsId);
     sendSuccess(reply, content);
 }
+
+/** DELETE /api/content/:id */
+export async function remove(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    await contentService.removeContent(request.params.id, request.user.wsId);
+    sendSuccess(reply, null);
+}

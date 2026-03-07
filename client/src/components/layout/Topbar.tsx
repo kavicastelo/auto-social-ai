@@ -1,41 +1,148 @@
-import { SearchIcon, BellIcon, UserIcon } from 'lucide-react';
+import { useState } from 'react';
+import { SearchIcon, BellIcon, UserIcon, LogOutIcon, ChevronDownIcon, Building2Icon, PlusIcon, SettingsIcon } from 'lucide-react';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { cn } from '../../lib/utils';
+
 interface TopbarProps {
   pageTitle: string;
 }
+
 export function Topbar({ pageTitle }: TopbarProps) {
+  const { user, workspaces, activeWorkspace, setActiveWorkspace, logout } = useAuth();
+  const [isWsOpen, setIsWsOpen] = useState(false);
+  const [isUserOpen, setIsUserOpen] = useState(false);
+
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-6 sticky top-0 z-30 backdrop-blur-md bg-background/80">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-foreground">{pageTitle}</h1>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">{pageTitle}</h1>
+
+        {/* Workspace Switcher - Polished */}
+        <div className="relative ml-4">
+          <button
+            onClick={() => setIsWsOpen(!isWsOpen)}
+            className="flex items-center gap-2 rounded-full border bg-muted/20 hover:bg-muted/40 px-3 py-1.5 transition-all duration-200 group"
+          >
+            <div className="h-5 w-5 rounded bg-violet-500 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">
+              {activeWorkspace?.name?.charAt(0) || 'W'}
+            </div>
+            <span className="text-xs font-semibold text-foreground max-w-[120px] truncate">{activeWorkspace?.name}</span>
+            <ChevronDownIcon className={cn("h-3 w-3 text-muted-foreground transition-transform duration-200", isWsOpen && "rotate-180")} />
+          </button>
+
+          {isWsOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsWsOpen(false)} />
+              <div className="absolute top-full left-0 mt-2 w-64 rounded-xl border bg-card shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <p className="text-[10px] font-bold text-muted-foreground px-3 py-2 uppercase tracking-widest">Switch Workspace</p>
+                <div className="space-y-1">
+                  {workspaces.map(ws => (
+                    <button
+                      key={ws.id}
+                      onClick={() => {
+                        setActiveWorkspace(ws);
+                        setIsWsOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
+                        activeWorkspace?.id === ws.id
+                          ? "bg-violet-500/10 text-violet-700 dark:text-violet-300 font-medium"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <Building2Icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1 text-left truncate">{ws.name}</span>
+                      {activeWorkspace?.id === ws.id && <div className="h-1.5 w-1.5 rounded-full bg-violet-500" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t">
+                  <Link to="/settings">
+                    <button
+                      className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-violet-600 dark:text-violet-400 hover:bg-violet-500/5 transition-all"
+                      onClick={() => setIsWsOpen(false)}
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      Manage Workspaces
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative hidden w-64 md:block">
-          <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative hidden lg:block">
+          <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
           <Input
             type="search"
-            placeholder="Search..."
-            className="w-full bg-muted/50 pl-9 border-transparent focus-visible:border-input" />
-
+            placeholder="Universal search..."
+            className="w-72 bg-muted/30 pl-10 border-transparent focus-visible:bg-background transition-all" />
         </div>
 
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-muted-foreground">
-
+          className="relative text-muted-foreground hover:text-foreground">
           <BellIcon className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-violet-500 ring-2 ring-background"></span>
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-violet-500 ring-4 ring-background"></span>
         </Button>
 
-        <div className="h-8 w-8 overflow-hidden rounded-full border border-border bg-muted">
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900 dark:to-indigo-900">
-            <UserIcon className="h-4 w-4 text-violet-700 dark:text-violet-300" />
-          </div>
+        {/* User Profile & Logout */}
+        <div className="relative">
+          <button
+            onClick={() => setIsUserOpen(!isUserOpen)}
+            className="flex items-center gap-3 group focus:outline-none"
+          >
+            <div className="flex flex-col items-end hidden sm:flex">
+              <span className="text-sm font-semibold leading-tight">{user?.name}</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter opacity-60">Pro Account</span>
+            </div>
+            <div className="h-9 w-9 overflow-hidden rounded-full border-2 border-border bg-muted ring-offset-background group-hover:ring-2 group-hover:ring-primary/20 transition-all">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900 dark:to-indigo-900">
+                  <UserIcon className="h-4 w-4 text-violet-700 dark:text-violet-300" />
+                </div>
+              )}
+            </div>
+          </button>
+
+          {isUserOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsUserOpen(false)} />
+              <div className="absolute top-full right-0 mt-2 w-56 rounded-xl border bg-card shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-3 py-2 mb-1 border-b pb-3 sm:hidden">
+                  <p className="text-xs font-bold truncate">{user?.name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+                </div>
+                <Link to="/settings">
+                  <button
+                    className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                    onClick={() => setIsUserOpen(false)}
+                  >
+                    <SettingsIcon className="h-4 w-4" />
+                    My Settings
+                  </button>
+                </Link>
+                <button
+                  onClick={logout}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </header>);
-
+    </header>
+  );
 }

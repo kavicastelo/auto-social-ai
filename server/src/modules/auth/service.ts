@@ -7,7 +7,7 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../../database/index.js';
 import { ConflictError, UnauthorizedError } from '../../utils/errors.js';
-import type { RegisterInput, LoginInput } from './schema.js';
+import type { RegisterInput, LoginInput, UpdateProfileInput } from './schema.js';
 import type { UserDTO, AuthTokens } from '@auto-social-ai/shared';
 
 const SALT_ROUNDS = 12;
@@ -77,6 +77,47 @@ export async function loginUser(input: LoginInput) {
         user: toUserDTO(user),
         workspaceId: membership?.workspaceId ?? '',
     };
+}
+
+/** Get current user's profile and workspaces */
+export async function getMe(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            workspaces: {
+                include: { workspace: true }
+            }
+        }
+    });
+
+    if (!user) throw new UnauthorizedError('User not found');
+
+    return {
+        user: toUserDTO(user),
+        workspaces: user.workspaces.map((w: any) => ({
+            id: w.workspace.id,
+            name: w.workspace.name,
+            slug: w.workspace.slug,
+            role: w.role,
+        })),
+    };
+}
+
+/** Update user profile */
+export async function updateProfile(userId: string, input: UpdateProfileInput) {
+    const data: any = {};
+    if (input.name !== undefined) data.name = input.name;
+    if (input.avatarUrl !== undefined) data.avatarUrl = input.avatarUrl;
+    if (input.password) {
+        data.password = await bcrypt.hash(input.password, SALT_ROUNDS);
+    }
+
+    const updated = await prisma.user.update({
+        where: { id: userId },
+        data,
+    });
+
+    return toUserDTO(updated);
 }
 
 /** Map Prisma User to public DTO (strips password) */

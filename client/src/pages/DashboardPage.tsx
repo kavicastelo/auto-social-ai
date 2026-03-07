@@ -1,47 +1,39 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   CalendarClockIcon,
   UsersIcon,
   FileTextIcon,
   ActivityIcon,
   PlusIcon
-} from
-  'lucide-react';
+} from 'lucide-react';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { PlatformIcon } from '../components/ui/PlatformIcon';
+import api from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+
 export function DashboardPage() {
-  const recentActivity = [
-    {
-      id: 1,
-      text: 'AI generated 5 LinkedIn posts',
-      time: '2 min ago',
-      platform: 'LinkedIn'
+  const { activeWorkspace } = useAuth();
+
+  const { data: metrics, isLoading: isMetricsLoading } = useQuery({
+    queryKey: ['analytics-overview', activeWorkspace?.id],
+    queryFn: async () => {
+      const response = await api.get('/analytics/overview');
+      return response.data.data;
     },
-    {
-      id: 2,
-      text: 'Scheduled Twitter thread',
-      time: '15 min ago',
-      platform: 'Twitter'
+    enabled: !!activeWorkspace,
+  });
+
+  const { data: recentPosts, isLoading: isPostsLoading } = useQuery({
+    queryKey: ['recent-posts', activeWorkspace?.id],
+    queryFn: async () => {
+      const response = await api.get('/scheduler', { params: { limit: 5 } });
+      return response.data.data;
     },
-    {
-      id: 3,
-      text: 'New Instagram carousel created',
-      time: '1 hour ago',
-      platform: 'Instagram'
-    },
-    {
-      id: 4,
-      text: 'TikTok script generated',
-      time: '2 hours ago',
-      platform: 'TikTok'
-    },
-    {
-      id: 5,
-      text: 'Analytics report ready',
-      time: '3 hours ago',
-      platform: 'System'
-    }];
+    enabled: !!activeWorkspace,
+  });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -49,71 +41,70 @@ export function DashboardPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Posts Scheduled"
-          value="28"
+          value={isMetricsLoading ? "..." : metrics?.scheduledCount || "0"}
           icon={<CalendarClockIcon className="h-5 w-5" />}
-          trend={{
-            value: 12,
-            isPositive: true
-          }}
+          trend={{ value: 12, isPositive: true }}
           gradientIcon />
 
         <MetricCard
-          title="Active Pages"
-          value="12"
+          title="Accounts"
+          value={isMetricsLoading ? "..." : metrics?.accountsCount || "0"}
           icon={<UsersIcon className="h-5 w-5" />}
-          trend={{
-            value: 2,
-            isPositive: true
-          }} />
+          trend={{ value: 0, isPositive: true }} />
 
         <MetricCard
-          title="Generated Content"
-          value="156"
+          title="Content Items"
+          value={isMetricsLoading ? "..." : metrics?.contentCount || "0"}
           icon={<FileTextIcon className="h-5 w-5" />}
-          trend={{
-            value: 24,
-            isPositive: true
-          }}
+          trend={{ value: 5, isPositive: true }}
           gradientIcon />
 
         <MetricCard
-          title="Engagement Rate"
-          value="4.8%"
+          title="Engagement"
+          value={isMetricsLoading ? "..." : (metrics?.avgEngagement || "0") + "%"}
           icon={<ActivityIcon className="h-5 w-5" />}
-          trend={{
-            value: 0.5,
-            isPositive: false
-          }} />
-
+          trend={{ value: 0.5, isPositive: false }} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Activity */}
+        {/* Recent Scheduled Posts */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle>Recent Activity</CardTitle>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              View All
-            </Button>
+            <CardTitle>Upcoming Posts</CardTitle>
+            <Link to="/scheduler">
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                View All
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-6 pt-4">
-              {recentActivity.map((activity) =>
-                <div key={activity.id} className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <PlatformIcon
-                      platform={activity.platform}
-                      className="h-4 w-4 text-muted-foreground" />
-
+              {isPostsLoading ? (
+                <p className="text-center text-muted-foreground py-8 italic">Loading recent posts...</p>
+              ) : recentPosts?.length > 0 ? (
+                recentPosts.map((post: any) => (
+                  <div key={post.id} className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted border border-border">
+                      <PlatformIcon
+                        platform={post.platform}
+                        className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium leading-none text-foreground">
+                        {post.status.toUpperCase()}: Post to {post.platform}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Scheduled for {new Date(post.scheduledAt).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none text-foreground">
-                      {activity.text}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {activity.time}
-                    </p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm italic mb-4">No upcoming posts found for this workspace.</p>
+                  <Link to="/content">
+                    <Button size="sm" variant="outline">Generate Content</Button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -126,30 +117,35 @@ export function DashboardPage() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="primary" className="w-full justify-start gap-2">
-              <PlusIcon className="h-4 w-4" />
-              Create New Content
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <CalendarClockIcon className="h-4 w-4" />
-              Schedule Post
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <UsersIcon className="h-4 w-4" />
-              Connect Account
-            </Button>
-            <div className="mt-6 rounded-xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 p-4 border border-violet-500/20">
+            <Link to="/content" className="w-full">
+              <Button variant="primary" className="w-full justify-start gap-2">
+                <PlusIcon className="h-4 w-4" />
+                Create New Content
+              </Button>
+            </Link>
+            <Link to="/scheduler" className="w-full mt-2 block">
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <CalendarClockIcon className="h-4 w-4" />
+                Schedule Post
+              </Button>
+            </Link>
+            <Link to="/pages" className="w-full mt-2 block">
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <UsersIcon className="h-4 w-4" />
+                Connect Account
+              </Button>
+            </Link>
+            <div className="mt-6 rounded-xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 p-4 border border-violet-500/20 shadow-sm">
               <h4 className="font-semibold text-violet-700 dark:text-violet-300 mb-2">
                 Pro Tip
               </h4>
               <p className="text-sm text-muted-foreground">
                 Set up an automation pipeline to automatically generate and
-                schedule your weekly content.
+                schedule your weekly content across all platforms.
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>);
-
 }

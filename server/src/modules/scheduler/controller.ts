@@ -27,3 +27,14 @@ export async function list(request: FastifyRequest, reply: FastifyReply): Promis
     const { items, meta } = await schedulerService.listScheduledPosts(query, request.user.wsId);
     sendSuccess(reply, items, 200, meta);
 }
+/** GET /api/scheduler/:id */
+export async function getById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    const post = await schedulerService.getScheduledPostById(request.params.id, request.user.wsId);
+    sendSuccess(reply, post);
+}
+
+/** DELETE /api/scheduler/:id */
+export async function remove(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    await schedulerService.cancelScheduledPost(request.params.id, request.user.wsId);
+    sendSuccess(reply, null);
+}
