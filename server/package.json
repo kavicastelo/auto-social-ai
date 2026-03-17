@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/index.ts",
-        "build": "prisma generate --schema=prisma/schema.prisma && tsc",
+        "build": "npm run build --workspace=@auto-social-ai/shared && prisma generate --schema=prisma/schema.prisma && tsc",
         "start": "node dist/index.js",
         "typecheck": "tsc --noEmit",
         "db:generate": "prisma generate",
@@ -22,6 +22,7 @@
         "@fastify/oauth2": "^8.2.0",
         "@fastify/rate-limit": "^10.2.2",
         "@prisma/client": "^6.19.2",
+        "@auto-social-ai/shared": "*",
         "bcrypt": "^5.1.1",
         "bullmq": "^5.34.8",
         "dotenv": "^16.4.7",
