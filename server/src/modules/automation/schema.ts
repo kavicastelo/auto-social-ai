@@ -13,7 +13,18 @@ export const createPipelineSchema = z.object({
     description: z.string().max(500).optional(),
     triggerType: triggerTypeEnum,
     platforms: z.array(platformEnum).min(1, 'At least one platform is required'),
-    config: z.record(z.unknown()).default({}),
+    config: z.object({
+        nodes: z.array(z.any()).optional(),
+        edges: z.array(z.any()).optional(),
+        topic: z.string().optional(),
+        tone: z.string().optional(),
+        contentType: z.string().optional(),
+        generateMedia: z.boolean().optional(),
+        mediaTheme: z.string().optional(),
+        quote: z.string().optional(),
+        publishDelayHours: z.number().optional(),
+        cron: z.string().optional(),
+    }).default({}),
 });
 
 export const updatePipelineSchema = z.object({
@@ -22,7 +33,7 @@ export const updatePipelineSchema = z.object({
     status: pipelineStatusEnum.optional(),
     triggerType: triggerTypeEnum.optional(),
     platforms: z.array(platformEnum).min(1).optional(),
-    config: z.record(z.unknown()).optional(),
+    config: z.record(z.any()).optional(),
 });
 
 export const automationQuerySchema = z.object({

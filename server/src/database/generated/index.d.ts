@@ -82,7 +82,8 @@ export const ContentStatus: {
   edited: 'edited',
   approved: 'approved',
   published: 'published',
-  archived: 'archived'
+  archived: 'archived',
+  failed: 'failed'
 };
 
 export type ContentStatus = (typeof ContentStatus)[keyof typeof ContentStatus]
@@ -114,6 +115,7 @@ export const PipelineStatus: {
   active: 'active',
   paused: 'paused',
   draft: 'draft',
+  failed: 'failed',
   error: 'error'
 };
 
@@ -1876,6 +1878,37 @@ export namespace Prisma {
    * ContentCountOutputType without action
    */
   export type ContentCountOutputTypeCountPostsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ScheduledPostWhereInput
+  }
+
+
+  /**
+   * Count Type MediaAssetCountOutputType
+   */
+
+  export type MediaAssetCountOutputType = {
+    posts: number
+  }
+
+  export type MediaAssetCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    posts?: boolean | MediaAssetCountOutputTypeCountPostsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MediaAssetCountOutputType without action
+   */
+  export type MediaAssetCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MediaAssetCountOutputType
+     */
+    select?: MediaAssetCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MediaAssetCountOutputType without action
+   */
+  export type MediaAssetCountOutputTypeCountPostsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ScheduledPostWhereInput
   }
 
@@ -7680,6 +7713,7 @@ export namespace Prisma {
     contentId: string | null
     accountId: string | null
     workspaceId: string | null
+    mediaAssetId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7693,6 +7727,7 @@ export namespace Prisma {
     contentId: string | null
     accountId: string | null
     workspaceId: string | null
+    mediaAssetId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7706,6 +7741,7 @@ export namespace Prisma {
     contentId: number
     accountId: number
     workspaceId: number
+    mediaAssetId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -7721,6 +7757,7 @@ export namespace Prisma {
     contentId?: true
     accountId?: true
     workspaceId?: true
+    mediaAssetId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7734,6 +7771,7 @@ export namespace Prisma {
     contentId?: true
     accountId?: true
     workspaceId?: true
+    mediaAssetId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7747,6 +7785,7 @@ export namespace Prisma {
     contentId?: true
     accountId?: true
     workspaceId?: true
+    mediaAssetId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -7833,6 +7872,7 @@ export namespace Prisma {
     contentId: string
     accountId: string
     workspaceId: string
+    mediaAssetId: string | null
     createdAt: Date
     updatedAt: Date
     _count: ScheduledPostCountAggregateOutputType | null
@@ -7863,11 +7903,13 @@ export namespace Prisma {
     contentId?: boolean
     accountId?: boolean
     workspaceId?: boolean
+    mediaAssetId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     content?: boolean | ContentDefaultArgs<ExtArgs>
     account?: boolean | SocialAccountDefaultArgs<ExtArgs>
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    media?: boolean | ScheduledPost$mediaArgs<ExtArgs>
   }, ExtArgs["result"]["scheduledPost"]>
 
   export type ScheduledPostSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7879,11 +7921,13 @@ export namespace Prisma {
     contentId?: boolean
     accountId?: boolean
     workspaceId?: boolean
+    mediaAssetId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     content?: boolean | ContentDefaultArgs<ExtArgs>
     account?: boolean | SocialAccountDefaultArgs<ExtArgs>
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    media?: boolean | ScheduledPost$mediaArgs<ExtArgs>
   }, ExtArgs["result"]["scheduledPost"]>
 
   export type ScheduledPostSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7895,11 +7939,13 @@ export namespace Prisma {
     contentId?: boolean
     accountId?: boolean
     workspaceId?: boolean
+    mediaAssetId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     content?: boolean | ContentDefaultArgs<ExtArgs>
     account?: boolean | SocialAccountDefaultArgs<ExtArgs>
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    media?: boolean | ScheduledPost$mediaArgs<ExtArgs>
   }, ExtArgs["result"]["scheduledPost"]>
 
   export type ScheduledPostSelectScalar = {
@@ -7911,25 +7957,29 @@ export namespace Prisma {
     contentId?: boolean
     accountId?: boolean
     workspaceId?: boolean
+    mediaAssetId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ScheduledPostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scheduledAt" | "publishedAt" | "status" | "failureReason" | "contentId" | "accountId" | "workspaceId" | "createdAt" | "updatedAt", ExtArgs["result"]["scheduledPost"]>
+  export type ScheduledPostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scheduledAt" | "publishedAt" | "status" | "failureReason" | "contentId" | "accountId" | "workspaceId" | "mediaAssetId" | "createdAt" | "updatedAt", ExtArgs["result"]["scheduledPost"]>
   export type ScheduledPostInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     content?: boolean | ContentDefaultArgs<ExtArgs>
     account?: boolean | SocialAccountDefaultArgs<ExtArgs>
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    media?: boolean | ScheduledPost$mediaArgs<ExtArgs>
   }
   export type ScheduledPostIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     content?: boolean | ContentDefaultArgs<ExtArgs>
     account?: boolean | SocialAccountDefaultArgs<ExtArgs>
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    media?: boolean | ScheduledPost$mediaArgs<ExtArgs>
   }
   export type ScheduledPostIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     content?: boolean | ContentDefaultArgs<ExtArgs>
     account?: boolean | SocialAccountDefaultArgs<ExtArgs>
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    media?: boolean | ScheduledPost$mediaArgs<ExtArgs>
   }
 
   export type $ScheduledPostPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7938,6 +7988,7 @@ export namespace Prisma {
       content: Prisma.$ContentPayload<ExtArgs>
       account: Prisma.$SocialAccountPayload<ExtArgs>
       workspace: Prisma.$WorkspacePayload<ExtArgs>
+      media: Prisma.$MediaAssetPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7948,6 +7999,7 @@ export namespace Prisma {
       contentId: string
       accountId: string
       workspaceId: string
+      mediaAssetId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["scheduledPost"]>
@@ -8347,6 +8399,7 @@ export namespace Prisma {
     content<T extends ContentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ContentDefaultArgs<ExtArgs>>): Prisma__ContentClient<$Result.GetResult<Prisma.$ContentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     account<T extends SocialAccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SocialAccountDefaultArgs<ExtArgs>>): Prisma__SocialAccountClient<$Result.GetResult<Prisma.$SocialAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     workspace<T extends WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WorkspaceDefaultArgs<ExtArgs>>): Prisma__WorkspaceClient<$Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    media<T extends ScheduledPost$mediaArgs<ExtArgs> = {}>(args?: Subset<T, ScheduledPost$mediaArgs<ExtArgs>>): Prisma__MediaAssetClient<$Result.GetResult<Prisma.$MediaAssetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8384,6 +8437,7 @@ export namespace Prisma {
     readonly contentId: FieldRef<"ScheduledPost", 'String'>
     readonly accountId: FieldRef<"ScheduledPost", 'String'>
     readonly workspaceId: FieldRef<"ScheduledPost", 'String'>
+    readonly mediaAssetId: FieldRef<"ScheduledPost", 'String'>
     readonly createdAt: FieldRef<"ScheduledPost", 'DateTime'>
     readonly updatedAt: FieldRef<"ScheduledPost", 'DateTime'>
   }
@@ -8779,6 +8833,25 @@ export namespace Prisma {
      * Limit how many ScheduledPosts to delete.
      */
     limit?: number
+  }
+
+  /**
+   * ScheduledPost.media
+   */
+  export type ScheduledPost$mediaArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MediaAsset
+     */
+    select?: MediaAssetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MediaAsset
+     */
+    omit?: MediaAssetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MediaAssetInclude<ExtArgs> | null
+    where?: MediaAssetWhereInput
   }
 
   /**
@@ -10214,6 +10287,8 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    posts?: boolean | MediaAsset$postsArgs<ExtArgs>
+    _count?: boolean | MediaAssetCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["mediaAsset"]>
 
   export type MediaAssetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -10260,6 +10335,8 @@ export namespace Prisma {
   export type MediaAssetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "filename" | "originalName" | "mimeType" | "size" | "url" | "type" | "workspaceId" | "createdAt" | "updatedAt", ExtArgs["result"]["mediaAsset"]>
   export type MediaAssetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
+    posts?: boolean | MediaAsset$postsArgs<ExtArgs>
+    _count?: boolean | MediaAssetCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MediaAssetIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     workspace?: boolean | WorkspaceDefaultArgs<ExtArgs>
@@ -10272,6 +10349,7 @@ export namespace Prisma {
     name: "MediaAsset"
     objects: {
       workspace: Prisma.$WorkspacePayload<ExtArgs>
+      posts: Prisma.$ScheduledPostPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -10679,6 +10757,7 @@ export namespace Prisma {
   export interface Prisma__MediaAssetClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     workspace<T extends WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WorkspaceDefaultArgs<ExtArgs>>): Prisma__WorkspaceClient<$Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    posts<T extends MediaAsset$postsArgs<ExtArgs> = {}>(args?: Subset<T, MediaAsset$postsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ScheduledPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -11111,6 +11190,30 @@ export namespace Prisma {
      * Limit how many MediaAssets to delete.
      */
     limit?: number
+  }
+
+  /**
+   * MediaAsset.posts
+   */
+  export type MediaAsset$postsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ScheduledPost
+     */
+    select?: ScheduledPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ScheduledPost
+     */
+    omit?: ScheduledPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduledPostInclude<ExtArgs> | null
+    where?: ScheduledPostWhereInput
+    orderBy?: ScheduledPostOrderByWithRelationInput | ScheduledPostOrderByWithRelationInput[]
+    cursor?: ScheduledPostWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ScheduledPostScalarFieldEnum | ScheduledPostScalarFieldEnum[]
   }
 
   /**
@@ -12292,6 +12395,7 @@ export namespace Prisma {
     contentId: 'contentId',
     accountId: 'accountId',
     workspaceId: 'workspaceId',
+    mediaAssetId: 'mediaAssetId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -12958,11 +13062,13 @@ export namespace Prisma {
     contentId?: StringFilter<"ScheduledPost"> | string
     accountId?: StringFilter<"ScheduledPost"> | string
     workspaceId?: StringFilter<"ScheduledPost"> | string
+    mediaAssetId?: StringNullableFilter<"ScheduledPost"> | string | null
     createdAt?: DateTimeFilter<"ScheduledPost"> | Date | string
     updatedAt?: DateTimeFilter<"ScheduledPost"> | Date | string
     content?: XOR<ContentScalarRelationFilter, ContentWhereInput>
     account?: XOR<SocialAccountScalarRelationFilter, SocialAccountWhereInput>
     workspace?: XOR<WorkspaceScalarRelationFilter, WorkspaceWhereInput>
+    media?: XOR<MediaAssetNullableScalarRelationFilter, MediaAssetWhereInput> | null
   }
 
   export type ScheduledPostOrderByWithRelationInput = {
@@ -12974,11 +13080,13 @@ export namespace Prisma {
     contentId?: SortOrder
     accountId?: SortOrder
     workspaceId?: SortOrder
+    mediaAssetId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     content?: ContentOrderByWithRelationInput
     account?: SocialAccountOrderByWithRelationInput
     workspace?: WorkspaceOrderByWithRelationInput
+    media?: MediaAssetOrderByWithRelationInput
   }
 
   export type ScheduledPostWhereUniqueInput = Prisma.AtLeast<{
@@ -12993,11 +13101,13 @@ export namespace Prisma {
     contentId?: StringFilter<"ScheduledPost"> | string
     accountId?: StringFilter<"ScheduledPost"> | string
     workspaceId?: StringFilter<"ScheduledPost"> | string
+    mediaAssetId?: StringNullableFilter<"ScheduledPost"> | string | null
     createdAt?: DateTimeFilter<"ScheduledPost"> | Date | string
     updatedAt?: DateTimeFilter<"ScheduledPost"> | Date | string
     content?: XOR<ContentScalarRelationFilter, ContentWhereInput>
     account?: XOR<SocialAccountScalarRelationFilter, SocialAccountWhereInput>
     workspace?: XOR<WorkspaceScalarRelationFilter, WorkspaceWhereInput>
+    media?: XOR<MediaAssetNullableScalarRelationFilter, MediaAssetWhereInput> | null
   }, "id">
 
   export type ScheduledPostOrderByWithAggregationInput = {
@@ -13009,6 +13119,7 @@ export namespace Prisma {
     contentId?: SortOrder
     accountId?: SortOrder
     workspaceId?: SortOrder
+    mediaAssetId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ScheduledPostCountOrderByAggregateInput
@@ -13028,6 +13139,7 @@ export namespace Prisma {
     contentId?: StringWithAggregatesFilter<"ScheduledPost"> | string
     accountId?: StringWithAggregatesFilter<"ScheduledPost"> | string
     workspaceId?: StringWithAggregatesFilter<"ScheduledPost"> | string
+    mediaAssetId?: StringNullableWithAggregatesFilter<"ScheduledPost"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ScheduledPost"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ScheduledPost"> | Date | string
   }
@@ -13139,6 +13251,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MediaAsset"> | Date | string
     updatedAt?: DateTimeFilter<"MediaAsset"> | Date | string
     workspace?: XOR<WorkspaceScalarRelationFilter, WorkspaceWhereInput>
+    posts?: ScheduledPostListRelationFilter
   }
 
   export type MediaAssetOrderByWithRelationInput = {
@@ -13153,6 +13266,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     workspace?: WorkspaceOrderByWithRelationInput
+    posts?: ScheduledPostOrderByRelationAggregateInput
   }
 
   export type MediaAssetWhereUniqueInput = Prisma.AtLeast<{
@@ -13170,6 +13284,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"MediaAsset"> | Date | string
     updatedAt?: DateTimeFilter<"MediaAsset"> | Date | string
     workspace?: XOR<WorkspaceScalarRelationFilter, WorkspaceWhereInput>
+    posts?: ScheduledPostListRelationFilter
   }, "id">
 
   export type MediaAssetOrderByWithAggregationInput = {
@@ -13701,6 +13816,7 @@ export namespace Prisma {
     content: ContentCreateNestedOneWithoutPostsInput
     account: SocialAccountCreateNestedOneWithoutPostsInput
     workspace: WorkspaceCreateNestedOneWithoutPostsInput
+    media?: MediaAssetCreateNestedOneWithoutPostsInput
   }
 
   export type ScheduledPostUncheckedCreateInput = {
@@ -13712,6 +13828,7 @@ export namespace Prisma {
     contentId: string
     accountId: string
     workspaceId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13727,6 +13844,7 @@ export namespace Prisma {
     content?: ContentUpdateOneRequiredWithoutPostsNestedInput
     account?: SocialAccountUpdateOneRequiredWithoutPostsNestedInput
     workspace?: WorkspaceUpdateOneRequiredWithoutPostsNestedInput
+    media?: MediaAssetUpdateOneWithoutPostsNestedInput
   }
 
   export type ScheduledPostUncheckedUpdateInput = {
@@ -13738,6 +13856,7 @@ export namespace Prisma {
     contentId?: StringFieldUpdateOperationsInput | string
     accountId?: StringFieldUpdateOperationsInput | string
     workspaceId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -13751,6 +13870,7 @@ export namespace Prisma {
     contentId: string
     accountId: string
     workspaceId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13774,6 +13894,7 @@ export namespace Prisma {
     contentId?: StringFieldUpdateOperationsInput | string
     accountId?: StringFieldUpdateOperationsInput | string
     workspaceId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -13893,6 +14014,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     workspace: WorkspaceCreateNestedOneWithoutMediaInput
+    posts?: ScheduledPostCreateNestedManyWithoutMediaInput
   }
 
   export type MediaAssetUncheckedCreateInput = {
@@ -13906,6 +14028,7 @@ export namespace Prisma {
     workspaceId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    posts?: ScheduledPostUncheckedCreateNestedManyWithoutMediaInput
   }
 
   export type MediaAssetUpdateInput = {
@@ -13919,6 +14042,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     workspace?: WorkspaceUpdateOneRequiredWithoutMediaNestedInput
+    posts?: ScheduledPostUpdateManyWithoutMediaNestedInput
   }
 
   export type MediaAssetUncheckedUpdateInput = {
@@ -13932,6 +14056,7 @@ export namespace Prisma {
     workspaceId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    posts?: ScheduledPostUncheckedUpdateManyWithoutMediaNestedInput
   }
 
   export type MediaAssetCreateManyInput = {
@@ -14485,6 +14610,11 @@ export namespace Prisma {
     isNot?: SocialAccountWhereInput
   }
 
+  export type MediaAssetNullableScalarRelationFilter = {
+    is?: MediaAssetWhereInput | null
+    isNot?: MediaAssetWhereInput | null
+  }
+
   export type ScheduledPostCountOrderByAggregateInput = {
     id?: SortOrder
     scheduledAt?: SortOrder
@@ -14494,6 +14624,7 @@ export namespace Prisma {
     contentId?: SortOrder
     accountId?: SortOrder
     workspaceId?: SortOrder
+    mediaAssetId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -14507,6 +14638,7 @@ export namespace Prisma {
     contentId?: SortOrder
     accountId?: SortOrder
     workspaceId?: SortOrder
+    mediaAssetId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -14520,6 +14652,7 @@ export namespace Prisma {
     contentId?: SortOrder
     accountId?: SortOrder
     workspaceId?: SortOrder
+    mediaAssetId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -15377,6 +15510,12 @@ export namespace Prisma {
     connect?: WorkspaceWhereUniqueInput
   }
 
+  export type MediaAssetCreateNestedOneWithoutPostsInput = {
+    create?: XOR<MediaAssetCreateWithoutPostsInput, MediaAssetUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: MediaAssetCreateOrConnectWithoutPostsInput
+    connect?: MediaAssetWhereUniqueInput
+  }
+
   export type EnumScheduleStatusFieldUpdateOperationsInput = {
     set?: $Enums.ScheduleStatus
   }
@@ -15403,6 +15542,16 @@ export namespace Prisma {
     upsert?: WorkspaceUpsertWithoutPostsInput
     connect?: WorkspaceWhereUniqueInput
     update?: XOR<XOR<WorkspaceUpdateToOneWithWhereWithoutPostsInput, WorkspaceUpdateWithoutPostsInput>, WorkspaceUncheckedUpdateWithoutPostsInput>
+  }
+
+  export type MediaAssetUpdateOneWithoutPostsNestedInput = {
+    create?: XOR<MediaAssetCreateWithoutPostsInput, MediaAssetUncheckedCreateWithoutPostsInput>
+    connectOrCreate?: MediaAssetCreateOrConnectWithoutPostsInput
+    upsert?: MediaAssetUpsertWithoutPostsInput
+    disconnect?: MediaAssetWhereInput | boolean
+    delete?: MediaAssetWhereInput | boolean
+    connect?: MediaAssetWhereUniqueInput
+    update?: XOR<XOR<MediaAssetUpdateToOneWithWhereWithoutPostsInput, MediaAssetUpdateWithoutPostsInput>, MediaAssetUncheckedUpdateWithoutPostsInput>
   }
 
   export type AutomationPipelineCreateplatformsInput = {
@@ -15450,6 +15599,20 @@ export namespace Prisma {
     connect?: WorkspaceWhereUniqueInput
   }
 
+  export type ScheduledPostCreateNestedManyWithoutMediaInput = {
+    create?: XOR<ScheduledPostCreateWithoutMediaInput, ScheduledPostUncheckedCreateWithoutMediaInput> | ScheduledPostCreateWithoutMediaInput[] | ScheduledPostUncheckedCreateWithoutMediaInput[]
+    connectOrCreate?: ScheduledPostCreateOrConnectWithoutMediaInput | ScheduledPostCreateOrConnectWithoutMediaInput[]
+    createMany?: ScheduledPostCreateManyMediaInputEnvelope
+    connect?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+  }
+
+  export type ScheduledPostUncheckedCreateNestedManyWithoutMediaInput = {
+    create?: XOR<ScheduledPostCreateWithoutMediaInput, ScheduledPostUncheckedCreateWithoutMediaInput> | ScheduledPostCreateWithoutMediaInput[] | ScheduledPostUncheckedCreateWithoutMediaInput[]
+    connectOrCreate?: ScheduledPostCreateOrConnectWithoutMediaInput | ScheduledPostCreateOrConnectWithoutMediaInput[]
+    createMany?: ScheduledPostCreateManyMediaInputEnvelope
+    connect?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+  }
+
   export type EnumMediaTypeFieldUpdateOperationsInput = {
     set?: $Enums.MediaType
   }
@@ -15460,6 +15623,34 @@ export namespace Prisma {
     upsert?: WorkspaceUpsertWithoutMediaInput
     connect?: WorkspaceWhereUniqueInput
     update?: XOR<XOR<WorkspaceUpdateToOneWithWhereWithoutMediaInput, WorkspaceUpdateWithoutMediaInput>, WorkspaceUncheckedUpdateWithoutMediaInput>
+  }
+
+  export type ScheduledPostUpdateManyWithoutMediaNestedInput = {
+    create?: XOR<ScheduledPostCreateWithoutMediaInput, ScheduledPostUncheckedCreateWithoutMediaInput> | ScheduledPostCreateWithoutMediaInput[] | ScheduledPostUncheckedCreateWithoutMediaInput[]
+    connectOrCreate?: ScheduledPostCreateOrConnectWithoutMediaInput | ScheduledPostCreateOrConnectWithoutMediaInput[]
+    upsert?: ScheduledPostUpsertWithWhereUniqueWithoutMediaInput | ScheduledPostUpsertWithWhereUniqueWithoutMediaInput[]
+    createMany?: ScheduledPostCreateManyMediaInputEnvelope
+    set?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    disconnect?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    delete?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    connect?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    update?: ScheduledPostUpdateWithWhereUniqueWithoutMediaInput | ScheduledPostUpdateWithWhereUniqueWithoutMediaInput[]
+    updateMany?: ScheduledPostUpdateManyWithWhereWithoutMediaInput | ScheduledPostUpdateManyWithWhereWithoutMediaInput[]
+    deleteMany?: ScheduledPostScalarWhereInput | ScheduledPostScalarWhereInput[]
+  }
+
+  export type ScheduledPostUncheckedUpdateManyWithoutMediaNestedInput = {
+    create?: XOR<ScheduledPostCreateWithoutMediaInput, ScheduledPostUncheckedCreateWithoutMediaInput> | ScheduledPostCreateWithoutMediaInput[] | ScheduledPostUncheckedCreateWithoutMediaInput[]
+    connectOrCreate?: ScheduledPostCreateOrConnectWithoutMediaInput | ScheduledPostCreateOrConnectWithoutMediaInput[]
+    upsert?: ScheduledPostUpsertWithWhereUniqueWithoutMediaInput | ScheduledPostUpsertWithWhereUniqueWithoutMediaInput[]
+    createMany?: ScheduledPostCreateManyMediaInputEnvelope
+    set?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    disconnect?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    delete?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    connect?: ScheduledPostWhereUniqueInput | ScheduledPostWhereUniqueInput[]
+    update?: ScheduledPostUpdateWithWhereUniqueWithoutMediaInput | ScheduledPostUpdateWithWhereUniqueWithoutMediaInput[]
+    updateMany?: ScheduledPostUpdateManyWithWhereWithoutMediaInput | ScheduledPostUpdateManyWithWhereWithoutMediaInput[]
+    deleteMany?: ScheduledPostScalarWhereInput | ScheduledPostScalarWhereInput[]
   }
 
   export type WorkspaceCreateNestedOneWithoutAnalyticsInput = {
@@ -16008,6 +16199,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     content: ContentCreateNestedOneWithoutPostsInput
     account: SocialAccountCreateNestedOneWithoutPostsInput
+    media?: MediaAssetCreateNestedOneWithoutPostsInput
   }
 
   export type ScheduledPostUncheckedCreateWithoutWorkspaceInput = {
@@ -16018,6 +16210,7 @@ export namespace Prisma {
     failureReason?: string | null
     contentId: string
     accountId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -16080,6 +16273,7 @@ export namespace Prisma {
     type: $Enums.MediaType
     createdAt?: Date | string
     updatedAt?: Date | string
+    posts?: ScheduledPostCreateNestedManyWithoutMediaInput
   }
 
   export type MediaAssetUncheckedCreateWithoutWorkspaceInput = {
@@ -16092,6 +16286,7 @@ export namespace Prisma {
     type: $Enums.MediaType
     createdAt?: Date | string
     updatedAt?: Date | string
+    posts?: ScheduledPostUncheckedCreateNestedManyWithoutMediaInput
   }
 
   export type MediaAssetCreateOrConnectWithoutWorkspaceInput = {
@@ -16224,6 +16419,7 @@ export namespace Prisma {
     contentId?: StringFilter<"ScheduledPost"> | string
     accountId?: StringFilter<"ScheduledPost"> | string
     workspaceId?: StringFilter<"ScheduledPost"> | string
+    mediaAssetId?: StringNullableFilter<"ScheduledPost"> | string | null
     createdAt?: DateTimeFilter<"ScheduledPost"> | Date | string
     updatedAt?: DateTimeFilter<"ScheduledPost"> | Date | string
   }
@@ -16503,6 +16699,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     content: ContentCreateNestedOneWithoutPostsInput
     workspace: WorkspaceCreateNestedOneWithoutPostsInput
+    media?: MediaAssetCreateNestedOneWithoutPostsInput
   }
 
   export type ScheduledPostUncheckedCreateWithoutAccountInput = {
@@ -16513,6 +16710,7 @@ export namespace Prisma {
     failureReason?: string | null
     contentId: string
     workspaceId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -16656,6 +16854,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     account: SocialAccountCreateNestedOneWithoutPostsInput
     workspace: WorkspaceCreateNestedOneWithoutPostsInput
+    media?: MediaAssetCreateNestedOneWithoutPostsInput
   }
 
   export type ScheduledPostUncheckedCreateWithoutContentInput = {
@@ -16666,6 +16865,7 @@ export namespace Prisma {
     failureReason?: string | null
     accountId: string
     workspaceId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -16871,6 +17071,37 @@ export namespace Prisma {
     create: XOR<WorkspaceCreateWithoutPostsInput, WorkspaceUncheckedCreateWithoutPostsInput>
   }
 
+  export type MediaAssetCreateWithoutPostsInput = {
+    id?: string
+    filename: string
+    originalName: string
+    mimeType: string
+    size: number
+    url: string
+    type: $Enums.MediaType
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workspace: WorkspaceCreateNestedOneWithoutMediaInput
+  }
+
+  export type MediaAssetUncheckedCreateWithoutPostsInput = {
+    id?: string
+    filename: string
+    originalName: string
+    mimeType: string
+    size: number
+    url: string
+    type: $Enums.MediaType
+    workspaceId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MediaAssetCreateOrConnectWithoutPostsInput = {
+    where: MediaAssetWhereUniqueInput
+    create: XOR<MediaAssetCreateWithoutPostsInput, MediaAssetUncheckedCreateWithoutPostsInput>
+  }
+
   export type ContentUpsertWithoutPostsInput = {
     update: XOR<ContentUpdateWithoutPostsInput, ContentUncheckedUpdateWithoutPostsInput>
     create: XOR<ContentCreateWithoutPostsInput, ContentUncheckedCreateWithoutPostsInput>
@@ -16990,6 +17221,43 @@ export namespace Prisma {
     analytics?: AnalyticsEventUncheckedUpdateManyWithoutWorkspaceNestedInput
   }
 
+  export type MediaAssetUpsertWithoutPostsInput = {
+    update: XOR<MediaAssetUpdateWithoutPostsInput, MediaAssetUncheckedUpdateWithoutPostsInput>
+    create: XOR<MediaAssetCreateWithoutPostsInput, MediaAssetUncheckedCreateWithoutPostsInput>
+    where?: MediaAssetWhereInput
+  }
+
+  export type MediaAssetUpdateToOneWithWhereWithoutPostsInput = {
+    where?: MediaAssetWhereInput
+    data: XOR<MediaAssetUpdateWithoutPostsInput, MediaAssetUncheckedUpdateWithoutPostsInput>
+  }
+
+  export type MediaAssetUpdateWithoutPostsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    filename?: StringFieldUpdateOperationsInput | string
+    originalName?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    type?: EnumMediaTypeFieldUpdateOperationsInput | $Enums.MediaType
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workspace?: WorkspaceUpdateOneRequiredWithoutMediaNestedInput
+  }
+
+  export type MediaAssetUncheckedUpdateWithoutPostsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    filename?: StringFieldUpdateOperationsInput | string
+    originalName?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    type?: EnumMediaTypeFieldUpdateOperationsInput | $Enums.MediaType
+    workspaceId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type WorkspaceCreateWithoutPipelinesInput = {
     id?: string
     name: string
@@ -17101,6 +17369,42 @@ export namespace Prisma {
     create: XOR<WorkspaceCreateWithoutMediaInput, WorkspaceUncheckedCreateWithoutMediaInput>
   }
 
+  export type ScheduledPostCreateWithoutMediaInput = {
+    id?: string
+    scheduledAt: Date | string
+    publishedAt?: Date | string | null
+    status?: $Enums.ScheduleStatus
+    failureReason?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    content: ContentCreateNestedOneWithoutPostsInput
+    account: SocialAccountCreateNestedOneWithoutPostsInput
+    workspace: WorkspaceCreateNestedOneWithoutPostsInput
+  }
+
+  export type ScheduledPostUncheckedCreateWithoutMediaInput = {
+    id?: string
+    scheduledAt: Date | string
+    publishedAt?: Date | string | null
+    status?: $Enums.ScheduleStatus
+    failureReason?: string | null
+    contentId: string
+    accountId: string
+    workspaceId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ScheduledPostCreateOrConnectWithoutMediaInput = {
+    where: ScheduledPostWhereUniqueInput
+    create: XOR<ScheduledPostCreateWithoutMediaInput, ScheduledPostUncheckedCreateWithoutMediaInput>
+  }
+
+  export type ScheduledPostCreateManyMediaInputEnvelope = {
+    data: ScheduledPostCreateManyMediaInput | ScheduledPostCreateManyMediaInput[]
+    skipDuplicates?: boolean
+  }
+
   export type WorkspaceUpsertWithoutMediaInput = {
     update: XOR<WorkspaceUpdateWithoutMediaInput, WorkspaceUncheckedUpdateWithoutMediaInput>
     create: XOR<WorkspaceCreateWithoutMediaInput, WorkspaceUncheckedCreateWithoutMediaInput>
@@ -17140,6 +17444,22 @@ export namespace Prisma {
     posts?: ScheduledPostUncheckedUpdateManyWithoutWorkspaceNestedInput
     pipelines?: AutomationPipelineUncheckedUpdateManyWithoutWorkspaceNestedInput
     analytics?: AnalyticsEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  }
+
+  export type ScheduledPostUpsertWithWhereUniqueWithoutMediaInput = {
+    where: ScheduledPostWhereUniqueInput
+    update: XOR<ScheduledPostUpdateWithoutMediaInput, ScheduledPostUncheckedUpdateWithoutMediaInput>
+    create: XOR<ScheduledPostCreateWithoutMediaInput, ScheduledPostUncheckedCreateWithoutMediaInput>
+  }
+
+  export type ScheduledPostUpdateWithWhereUniqueWithoutMediaInput = {
+    where: ScheduledPostWhereUniqueInput
+    data: XOR<ScheduledPostUpdateWithoutMediaInput, ScheduledPostUncheckedUpdateWithoutMediaInput>
+  }
+
+  export type ScheduledPostUpdateManyWithWhereWithoutMediaInput = {
+    where: ScheduledPostScalarWhereInput
+    data: XOR<ScheduledPostUpdateManyMutationInput, ScheduledPostUncheckedUpdateManyWithoutMediaInput>
   }
 
   export type WorkspaceCreateWithoutAnalyticsInput = {
@@ -17337,6 +17657,7 @@ export namespace Prisma {
     failureReason?: string | null
     contentId: string
     accountId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17488,6 +17809,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     content?: ContentUpdateOneRequiredWithoutPostsNestedInput
     account?: SocialAccountUpdateOneRequiredWithoutPostsNestedInput
+    media?: MediaAssetUpdateOneWithoutPostsNestedInput
   }
 
   export type ScheduledPostUncheckedUpdateWithoutWorkspaceInput = {
@@ -17498,6 +17820,7 @@ export namespace Prisma {
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     contentId?: StringFieldUpdateOperationsInput | string
     accountId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17510,6 +17833,7 @@ export namespace Prisma {
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     contentId?: StringFieldUpdateOperationsInput | string
     accountId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17566,6 +17890,7 @@ export namespace Prisma {
     type?: EnumMediaTypeFieldUpdateOperationsInput | $Enums.MediaType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    posts?: ScheduledPostUpdateManyWithoutMediaNestedInput
   }
 
   export type MediaAssetUncheckedUpdateWithoutWorkspaceInput = {
@@ -17578,6 +17903,7 @@ export namespace Prisma {
     type?: EnumMediaTypeFieldUpdateOperationsInput | $Enums.MediaType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    posts?: ScheduledPostUncheckedUpdateManyWithoutMediaNestedInput
   }
 
   export type MediaAssetUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -17624,6 +17950,7 @@ export namespace Prisma {
     failureReason?: string | null
     contentId: string
     workspaceId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17638,6 +17965,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     content?: ContentUpdateOneRequiredWithoutPostsNestedInput
     workspace?: WorkspaceUpdateOneRequiredWithoutPostsNestedInput
+    media?: MediaAssetUpdateOneWithoutPostsNestedInput
   }
 
   export type ScheduledPostUncheckedUpdateWithoutAccountInput = {
@@ -17648,6 +17976,7 @@ export namespace Prisma {
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     contentId?: StringFieldUpdateOperationsInput | string
     workspaceId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17660,6 +17989,7 @@ export namespace Prisma {
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     contentId?: StringFieldUpdateOperationsInput | string
     workspaceId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17672,6 +18002,7 @@ export namespace Prisma {
     failureReason?: string | null
     accountId: string
     workspaceId: string
+    mediaAssetId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17686,6 +18017,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: SocialAccountUpdateOneRequiredWithoutPostsNestedInput
     workspace?: WorkspaceUpdateOneRequiredWithoutPostsNestedInput
+    media?: MediaAssetUpdateOneWithoutPostsNestedInput
   }
 
   export type ScheduledPostUncheckedUpdateWithoutContentInput = {
@@ -17696,6 +18028,7 @@ export namespace Prisma {
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
     accountId?: StringFieldUpdateOperationsInput | string
     workspaceId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17706,6 +18039,59 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
     failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    workspaceId?: StringFieldUpdateOperationsInput | string
+    mediaAssetId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ScheduledPostCreateManyMediaInput = {
+    id?: string
+    scheduledAt: Date | string
+    publishedAt?: Date | string | null
+    status?: $Enums.ScheduleStatus
+    failureReason?: string | null
+    contentId: string
+    accountId: string
+    workspaceId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ScheduledPostUpdateWithoutMediaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    content?: ContentUpdateOneRequiredWithoutPostsNestedInput
+    account?: SocialAccountUpdateOneRequiredWithoutPostsNestedInput
+    workspace?: WorkspaceUpdateOneRequiredWithoutPostsNestedInput
+  }
+
+  export type ScheduledPostUncheckedUpdateWithoutMediaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    contentId?: StringFieldUpdateOperationsInput | string
+    accountId?: StringFieldUpdateOperationsInput | string
+    workspaceId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ScheduledPostUncheckedUpdateManyWithoutMediaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    contentId?: StringFieldUpdateOperationsInput | string
     accountId?: StringFieldUpdateOperationsInput | string
     workspaceId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

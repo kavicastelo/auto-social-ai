@@ -191,9 +191,10 @@ model ScheduledPost {
   status        ScheduleStatus @default(pending)
   failureReason String?
 
-  contentId   String
-  accountId   String
-  workspaceId String
+  contentId    String
+  accountId    String
+  workspaceId  String
+  mediaAssetId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -202,6 +203,7 @@ model ScheduledPost {
   content   Content       @relation(fields: [contentId], references: [id], onDelete: Cascade)
   account   SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
   workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  media     MediaAsset?   @relation(fields: [mediaAssetId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([status])
@@ -249,7 +251,8 @@ model MediaAsset {
   updatedAt DateTime @updatedAt
 
   // Relations
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  posts     ScheduledPost[]
 
   @@index([workspaceId])
   @@index([type])

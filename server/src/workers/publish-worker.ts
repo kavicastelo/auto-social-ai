@@ -25,7 +25,7 @@ export const publishWorker = new Worker<PublishJobData>(
 
         const post = await prisma.scheduledPost.findUnique({
             where: { id: scheduledPostId },
-            include: { content: true, account: true },
+            include: { content: true, account: true, media: true },
         });
 
         if (!post) {
@@ -36,6 +36,18 @@ export const publishWorker = new Worker<PublishJobData>(
         if (post.status === 'cancelled' || post.status === 'published') {
             log.info({ status: post.status }, 'Post already handled, skipping');
             return;
+        }
+
+        // Safety check: Don't publish if content is still "Generating..." or in error state
+        const contentStatus = post.content.status as string;
+        if (contentStatus === 'draft' || post.content.body === 'AI is generating...') {
+            log.warn({ contentStatus }, 'Content is not ready for publishing, skipping');
+            throw new Error('Content is still in draft or generating status');
+        }
+
+        if (contentStatus === 'failed') {
+            log.error('Content has failed status, cannot publish');
+            throw new Error('Associated content has a failed status');
         }
 
         try {
@@ -73,7 +85,7 @@ export const publishWorker = new Worker<PublishJobData>(
                 platformUsername: post.account.platformUsername
             };
 
-            const publishResult = await publisher.publishPost(config, formattedContent);
+            const publishResult = await publisher.publishPost(config, formattedContent, post.media?.url ? [post.media.url] : undefined);
 
             if (!publishResult.success) {
                 throw new Error(`Failed to publish: ${publishResult.error || 'Unknown error'}`);

@@ -14,31 +14,65 @@ export async function generateContent(
     input: GenerateContentInput,
     userId: string,
     workspaceId: string,
-): Promise<ContentDTO> {
-    const generatedTitle = input.topic.slice(0, 100);
+): Promise<{ content: Record<string, ContentDTO> }> {
+    const results: Record<string, ContentDTO> = {};
 
-    const content = await prisma.content.create({
-        data: {
-            title: generatedTitle,
-            body: 'Generating...', // placeholder
-            platform: input.platform as Platform,
-            status: 'draft',
-            tags: [],
-            authorId: userId,
-            workspaceId,
-        },
+    for (const platform of input.platforms) {
+        const platformValue = platform.toLowerCase() as Platform;
+        
+        const content = await prisma.content.create({
+            data: {
+                title: input.topic.slice(0, 50) + '...',
+                body: 'Generating...', // placeholder
+                platform: platformValue,
+                status: 'draft',
+                tags: [],
+                authorId: userId,
+                workspaceId,
+            },
+        });
+
+        // Enqueue generation job
+        await contentGenerationQueue.add('generate-content', {
+            contentId: content.id,
+            topic: input.topic,
+            platform: platformValue,
+            tone: input.tone,
+            contentType: input.type
+        });
+
+        results[platform] = toContentDTO(content);
+    }
+
+    return { content: results };
+}
+
+/** Refine existing content (improve/shorten/etc) */
+export async function refineContent(
+    input: { contentId: string; action: string; platforms: string[] },
+    workspaceId: string,
+): Promise<void> {
+    const existing = await prisma.content.findFirst({
+        where: { id: input.contentId, workspaceId },
     });
 
-    // Enqueue generation job
-    await contentGenerationQueue.add('generate-content', {
-        contentId: content.id,
-        topic: input.topic,
-        platform: input.platform,
-        tone: input.tone,
-        contentType: input.contentType
+    if (!existing) {
+        throw new NotFoundError('Content');
+    }
+
+    // Update status to draft while refining
+    await prisma.content.update({
+        where: { id: input.contentId },
+        data: { status: 'draft' },
     });
 
-    return toContentDTO(content);
+    // Enqueue refinement job
+    await contentGenerationQueue.add('refine-content', {
+        contentId: input.contentId,
+        action: input.action,
+        topic: existing.title, // Use title as context
+        platform: existing.platform,
+    });
 }
 
 /** Update content by ID */

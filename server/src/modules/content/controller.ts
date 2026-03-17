@@ -3,7 +3,7 @@
 // =============================================================================
 
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { generateContentSchema, editContentSchema, contentQuerySchema } from './schema.js';
+import { generateContentSchema, refineContentSchema, editContentSchema, contentQuerySchema } from './schema.js';
 import * as contentService from './service.js';
 import { sendSuccess } from '../../utils/response.js';
 
@@ -12,6 +12,13 @@ export async function generate(request: FastifyRequest, reply: FastifyReply): Pr
     const input = generateContentSchema.parse(request.body);
     const content = await contentService.generateContent(input, request.user.sub, request.user.wsId);
     sendSuccess(reply, content, 201);
+}
+
+/** POST /api/content/refine */
+export async function refine(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const input = refineContentSchema.parse(request.body);
+    await contentService.refineContent(input, request.user.wsId);
+    sendSuccess(reply, { message: 'Refinement started' });
 }
 
 /** PUT /api/content/:id */

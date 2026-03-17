@@ -95,81 +95,116 @@ function LoginPage() {
 
   if (authLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md space-y-6 p-8 border rounded-xl shadow-xl bg-card">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Auto Social AI</h1>
-          <p className="text-muted-foreground italic text-sm">
-            Secure Authentication active
-          </p>
-        </div>
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900/20 via-background to-background px-4 py-12">
+      <div className="w-full max-w-[440px] relative">
+        {/* Background Decor */}
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
 
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded text-sm text-center">
-            {error}
+        <div className="relative space-y-8 p-8 md:p-10 border border-border/50 rounded-3xl shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-600 to-indigo-600" />
+          
+          <div className="text-center space-y-2">
+            <div className="flex justify-center mb-6">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                <span className="text-2xl font-black text-white italic">A</span>
+              </div>
+            </div>
+            <h1 className="text-3xl font-black tracking-tighter text-foreground">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium">
+              {isLogin ? 'Sign in to access your social hub' : 'Start your journey with Auto Social AI'}
+            </p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div className="space-y-1">
-              <label className="text-xs font-medium uppercase text-muted-foreground">Full Name</label>
-              <input
-                required
-                className="w-full px-3 py-2 bg-background border rounded-md focus:ring-2 focus:ring-primary outline-none transition-all"
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-              />
+          {error && (
+            <div className="p-4 bg-red-500/5 border border-red-500/20 text-red-500 rounded-2xl text-xs font-bold text-center animate-in fade-in slide-in-from-top-2 duration-300">
+              {error}
             </div>
           )}
-          <div className="space-y-1">
-            <label className="text-xs font-medium uppercase text-muted-foreground">Email</label>
-            <input
-              required
-              type="email"
-              className="w-full px-3 py-2 bg-background border rounded-md focus:ring-2 focus:ring-primary outline-none transition-all"
-              placeholder="demo@example.com"
-              value={formData.email}
-              onChange={e => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium uppercase text-muted-foreground">Password</label>
-            <input
-              required
-              type="password"
-              className="w-full px-3 py-2 bg-background border rounded-md focus:ring-2 focus:ring-primary outline-none transition-all"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={e => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {!isLogin && (
+              <div className="space-y-2">
+                <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full Name</label>
+                <div className="relative">
+                  <input
+                    required
+                    className="w-full h-12 px-4 bg-background/50 border border-border/50 rounded-xl focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/50 outline-none transition-all placeholder:text-muted-foreground/40"
+                    placeholder="Enter your name"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
+              <input
+                required
+                type="email"
+                className="w-full h-12 px-4 bg-background/50 border border-border/50 rounded-xl focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/50 outline-none transition-all placeholder:text-muted-foreground/40"
+                placeholder="demo@example.com"
+                value={formData.email}
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
 
-        <div className="text-center text-sm">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:underline"
-          >
-            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-          </button>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Password</label>
+                {isLogin && <button type="button" className="text-[10px] font-bold text-violet-600 hover:text-violet-500">Forgot Password?</button>}
+              </div>
+              <input
+                required
+                type="password"
+                className="w-full h-12 px-4 bg-background/50 border border-border/50 rounded-xl focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/50 outline-none transition-all placeholder:text-muted-foreground/40"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={e => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-gradient-to-r from-violet-600 to-indigo-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-violet-500/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 mt-4"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                   <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                   Processing
+                </div>
+              ) : isLogin ? 'Sign In Securely' : 'Launch Account'}
+            </button>
+          </form>
+
+          <div className="text-center pt-2">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors group"
+            >
+              {isLogin ? (
+                <>New here? <span className="text-violet-600 group-hover:text-violet-500 transition-colors">Create an account</span></>
+              ) : (
+                <>Already a member? <span className="text-violet-600 group-hover:text-violet-500 transition-colors">Sign in here</span></>
+              )}
+            </button>
+          </div>
         </div>
+
+        <p className="text-center mt-8 text-[10px] text-muted-foreground font-medium">
+          Protected by industry-standard encryption. By continuing, you agree to our Terms.
+        </p>
       </div>
     </div>
   );

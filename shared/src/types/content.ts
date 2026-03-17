@@ -13,9 +13,9 @@ export type Platform = 'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tikt
 /** Content generation request */
 export interface GenerateContentRequest {
     topic: string;
-    platform: Platform;
+    platforms: Platform[];
     tone?: string;
-    contentType: string;
+    type: string;
 }
 
 /** Content edit request */
