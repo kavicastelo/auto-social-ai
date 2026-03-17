@@ -10,6 +10,7 @@ export async function contentRoutes(app: FastifyInstance): Promise<void> {
     app.addHook('preHandler', authGuard);
 
     app.post('/generate', controller.generate);
+    app.post('/refine', controller.refine);
     app.get('/', controller.list);
     app.get('/:id', controller.getById);
     app.patch('/:id', controller.edit);

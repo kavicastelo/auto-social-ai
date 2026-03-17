@@ -36,13 +36,13 @@ export function DashboardLayout({
         isMobileOpen={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen} />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden w-full relative">
         <Topbar 
           pageTitle={getPageTitle(location.pathname)} 
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
         />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -50,9 +50,9 @@ export function DashboardLayout({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="mx-auto max-w-7xl"
+              className="mx-auto max-w-7xl w-full"
             >
-              <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="mb-4 md:mb-6 flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
                 <span>Dashboard</span>
                 <span>/</span>
                 <span className="text-foreground font-medium">{getPageTitle(location.pathname)}</span>

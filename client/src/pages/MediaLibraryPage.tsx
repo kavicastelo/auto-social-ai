@@ -97,31 +97,31 @@ export function MediaLibraryPage() {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your images and videos for <strong>{activeWorkspace?.name}</strong>.
+        <div className="min-w-0">
+          <h2 className="text-xl md:text-2xl font-black tracking-tight truncate">Media Library</h2>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1 truncate max-w-xs md:max-w-none">
+            Manage your project assets efficiently.
           </p>
         </div>
-        <Button variant="primary" className="gap-2" onClick={handleUpload}>
+        <Button variant="primary" className="gap-2 w-full sm:w-auto justify-center shadow-lg shadow-violet-500/10" onClick={handleUpload}>
           <UploadIcon className="h-4 w-4" />
           Upload Media
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
           <Input
             placeholder="Search files..."
-            className="pl-9 bg-card"
+            className="pl-9 h-11 bg-card/50 border-border/50 focus:border-violet-500/50 transition-colors"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button variant="outline" className="gap-2 shrink-0">
+        <Button variant="outline" className="gap-2 h-11 border-border/50 hover:bg-violet-500/5 hover:text-violet-600 transition-all font-bold text-xs uppercase tracking-widest px-6">
           <FilterIcon className="h-4 w-4" />
           Filter
         </Button>

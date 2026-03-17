@@ -31,7 +31,19 @@ export const automationWorker = new Worker<AutomationJobData>(
         }
 
         try {
-            // Update last run
+            // Find a valid author for the automated content (must be a real user)
+            const workspaceMember = await prisma.workspaceMember.findFirst({
+                where: { workspaceId: pipeline.workspaceId },
+                include: { user: true }
+            });
+
+            if (!workspaceMember) {
+                throw new Error(`No members found in workspace ${pipeline.workspaceId}. Cannot assign author.`);
+            }
+
+            const authorId = workspaceMember.userId;
+
+            // Update last run stats
             await prisma.automationPipeline.update({
                 where: { id: pipelineId },
                 data: {
@@ -40,17 +52,14 @@ export const automationWorker = new Worker<AutomationJobData>(
                 }
             });
 
-            // Extract config settings
             const config = pipeline.config as any || {};
             const topic = config.topic || 'Auto Social AI daily updates';
-            const tone = config.tone || 'professional';
-            const contentType = config.contentType || 'short post';
-            const mediaTheme = config.mediaTheme || 'light';
-            const quote = config.quote || 'Automation changes everything';
+            const tone = config.tone || 'Professional';
+            const contentType = config.contentType || 'Social Media Post';
 
             // Build the flow for each platform
             for (const platform of pipeline.platforms) {
-                // Find account
+                // Find account for this platform in the workspace
                 const account = await prisma.socialAccount.findFirst({
                     where: { platform, workspaceId: pipeline.workspaceId }
                 });
@@ -60,40 +69,39 @@ export const automationWorker = new Worker<AutomationJobData>(
                     continue;
                 }
 
-                // First, create the empty Content model that the flow will update
+                // 1. Create the content record (Initial state)
                 const content = await prisma.content.create({
                     data: {
-                        title: `Auto Pipeline: ${pipeline.name}`,
-                        body: 'Generating...',
+                        title: `Pipeline: ${pipeline.name}`,
+                        body: 'AI is generating...',
                         platform: platform,
                         status: 'draft',
                         tags: [],
-                        authorId: 'system', // or the workspace owner, we can leave it empty if relations permit but author is required. Wait, we need a user ID. Let's find first user.
+                        authorId,
                         workspaceId: pipeline.workspaceId,
                     }
-                }).catch(async (e) => {
-                    // find a workspace member
-                    const member = await prisma.workspaceMember.findFirst({ where: { workspaceId: pipeline.workspaceId } });
-                    if (!member) throw e;
+                });
 
-                    return prisma.content.create({
+                // 2. Optional Media Asset (if configured)
+                let mediaAssetId: string | undefined;
+                if (config.generateMedia) {
+                    const media = await prisma.mediaAsset.create({
                         data: {
-                            title: `Auto Pipeline: ${pipeline.name}`,
-                            body: 'Generating...',
-                            platform: platform,
-                            status: 'draft',
-                            tags: [],
-                            authorId: member.userId,
+                            filename: `temp-${Date.now()}.svg`,
+                            originalName: 'Automation Quote',
+                            mimeType: 'image/svg+xml',
+                            size: 0,
+                            url: '',
+                            type: 'image',
                             workspaceId: pipeline.workspaceId,
                         }
                     });
-                });
+                    mediaAssetId = media.id;
+                }
 
-                // Schedule post right away
-                // The schedule job waits until publishTime, but for automation we can assume immediate (delay 0)
-                // If config has publishDelay in hours
+                // 3. Create the scheduled post
                 const publishTime = new Date();
-                const delayMs = config.publishDelayHours ? (config.publishDelayHours * 3600000) : 0;
+                const delayMs = (config.publishDelayHours || 0) * 3600000;
                 publishTime.setTime(publishTime.getTime() + delayMs);
 
                 const scheduledPost = await prisma.scheduledPost.create({
@@ -103,41 +111,63 @@ export const automationWorker = new Worker<AutomationJobData>(
                         workspaceId: pipeline.workspaceId,
                         scheduledAt: publishTime,
                         status: 'queued',
+                        mediaAssetId,
                     }
                 });
 
-                const mediaId = `media-${Date.now()}`; // Just a placeholder, as we don't know the DB ID yet for real flow dependency injection
+                // 4. Orchestrate the Flow: Generate Content + (Optional Media) -> Publish
+                const children = [
+                    {
+                        name: 'generate-content',
+                        queueName: 'content-generation',
+                        data: {
+                            contentId: content.id,
+                            topic,
+                            platform,
+                            tone,
+                            contentType,
+                            action: 'regenerate'
+                        }
+                    }
+                ];
 
-                // Using BullMQ Flows to orchestrate dependencies.
-                // Publish relies on Content Generation (and potentially Media Generation)
+                if (mediaAssetId) {
+                    children.push({
+                        name: 'media-generation',
+                        queueName: 'media-generation',
+                        data: {
+                            mediaAssetId,
+                            quote: config.quote || topic,
+                            theme: config.mediaTheme || 'light',
+                            author: pipeline.name
+                        } as any
+                    });
+                }
 
                 await autoSocialFlowProducer.add({
-                    name: 'publish',
+                    name: 'publish-post',
                     queueName: 'publish-post',
                     data: { scheduledPostId: scheduledPost.id },
                     opts: {
-                        delay: Math.max(publishTime.getTime() - Date.now(), 0)
+                        delay: Math.max(publishTime.getTime() - Date.now(), 0),
+                        removeOnComplete: true
                     },
-                    children: [
-                        {
-                            name: 'generate-content',
-                            queueName: 'content-generation',
-                            data: {
-                                contentId: content.id,
-                                topic,
-                                platform,
-                                tone,
-                                contentType
-                            }
-                        },
-                        // We could add media generation here as well if configured
-                    ]
+                    children
                 });
+
+                log.info({ platform, contentId: content.id, hasMedia: !!mediaAssetId }, 'Flow enqueued successfully');
             }
 
             log.info('Pipeline execution initiated successfully');
         } catch (error) {
             log.error({ err: error }, 'Failed to execute pipeline');
+            
+            // Mark pipeline as errored in the database
+            await prisma.automationPipeline.update({
+                where: { id: pipelineId },
+                data: { status: 'failed' as any }
+            });
+
             throw error;
         }
     },

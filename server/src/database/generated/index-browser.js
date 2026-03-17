@@ -185,6 +185,7 @@ exports.Prisma.ScheduledPostScalarFieldEnum = {
   contentId: 'contentId',
   accountId: 'accountId',
   workspaceId: 'workspaceId',
+  mediaAssetId: 'mediaAssetId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -273,7 +274,8 @@ exports.ContentStatus = exports.$Enums.ContentStatus = {
   edited: 'edited',
   approved: 'approved',
   published: 'published',
-  archived: 'archived'
+  archived: 'archived',
+  failed: 'failed'
 };
 
 exports.ScheduleStatus = exports.$Enums.ScheduleStatus = {
@@ -289,6 +291,7 @@ exports.PipelineStatus = exports.$Enums.PipelineStatus = {
   active: 'active',
   paused: 'paused',
   draft: 'draft',
+  failed: 'failed',
   error: 'error'
 };
 

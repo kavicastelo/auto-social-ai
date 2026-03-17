@@ -108,27 +108,27 @@ export function AnalyticsPage() {
       ) : (
         <>
           {/* Metrics */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
             <MetricCard
-              title="Total Reach"
+              title="Reach"
               value={formatNumber(analytics?.totalReach || 0)}
               icon={<span className="font-bold">R</span>}
               trend={{ value: 12.4, isPositive: true }}
             />
             <MetricCard
-              title="Engagement"
+              title="Engage"
               value={formatNumber(analytics?.totalEngagement || 0)}
               icon={<span className="font-bold">E</span>}
               trend={{ value: 5.2, isPositive: true }}
             />
             <MetricCard
-              title="Link Clicks"
+              title="Clicks"
               value={formatNumber(analytics?.totalClicks || 0)}
               icon={<span className="font-bold">C</span>}
               trend={{ value: 2.1, isPositive: false }}
             />
             <MetricCard
-              title="Total Posts"
+              title="Posts"
               value={analytics?.totalPosts?.toString() || "0"}
               icon={<span className="font-bold">P</span>}
               trend={{ value: 18.2, isPositive: true }}
@@ -136,16 +136,16 @@ export function AnalyticsPage() {
             />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
             {/* Engagement Chart */}
-            <Card className="bg-card/50 backdrop-blur-sm border-border">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Engagement Trend</CardTitle>
+            <Card className="bg-card/50 backdrop-blur-sm border-border overflow-hidden">
+              <CardHeader className="p-4 md:p-6 pb-2">
+                <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Engagement Trend</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
+              <CardContent className="p-2 md:p-6 pt-0">
+                <div className="h-[250px] md:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={engagementData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={engagementData} margin={{ top: 10, right: 10, left: -30, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
@@ -153,11 +153,11 @@ export function AnalyticsPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                        itemStyle={{ color: 'hsl(var(--foreground))' }}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))', fontSize: '12px', fontWeight: 'bold' }}
                       />
                       <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" name="Engagement" />
                     </AreaChart>
@@ -167,21 +167,21 @@ export function AnalyticsPage() {
             </Card>
 
             {/* Platform Performance */}
-            <Card className="bg-card/50 backdrop-blur-sm border-border">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Platform Comparison</CardTitle>
+            <Card className="bg-card/50 backdrop-blur-sm border-border overflow-hidden">
+              <CardHeader className="p-4 md:p-6 pb-2">
+                <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Platform Breakdown</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px] w-full">
+              <CardContent className="p-2 md:p-6 pt-0">
+                <div className="h-[250px] md:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={performanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart data={performanceData} margin={{ top: 10, right: 10, left: -30, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                      <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} />
-                      <Legend verticalAlign="top" height={36} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                      <Tooltip cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }} contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px' }} />
+                      <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }} />
                       <Bar dataKey="reach" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Reach" />
-                      <Bar dataKey="engagement" fill="#c4b5fd" radius={[4, 4, 0, 0]} name="Engagement" />
+                      <Bar dataKey="engagement" fill="#c4b5fd" radius={[4, 4, 0, 0]} name="Engage" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -189,39 +189,41 @@ export function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Top Platforms List */}
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle>Platform Metrics Detail</CardTitle>
+          {/* Top Platforms Detail */}
+          <Card className="border-border overflow-hidden shadow-lg rounded-2xl">
+            <CardHeader className="border-b bg-muted/20">
+              <CardTitle className="text-sm font-bold uppercase tracking-widest">Growth per Platform</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase border-b">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">Platform</th>
-                      <th className="px-4 py-3 font-medium">Posts</th>
-                      <th className="px-4 py-3 font-medium">Total Reach</th>
-                      <th className="px-4 py-3 font-medium">Engagement</th>
-                      <th className="px-4 py-3 font-medium">Clicks</th>
+            <CardContent className="p-0 overflow-x-auto scrollbar-none">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="text-[10px] text-muted-foreground uppercase bg-muted/10 tracking-widest border-b">
+                  <tr>
+                    <th className="px-6 py-4 font-bold">Platform</th>
+                    <th className="px-6 py-4 font-bold text-center">Posts</th>
+                    <th className="px-6 py-4 font-bold text-right">Reach</th>
+                    <th className="px-6 py-4 font-bold text-right">Engage</th>
+                    <th className="px-6 py-4 font-bold text-right">Clicks</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {analytics?.platformBreakdown?.map((p: any) => (
+                    <tr key={p.platform} className="hover:bg-violet-500/5 transition-colors group">
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-lg bg-card border border-border shadow-sm group-hover:border-violet-500/30 transition-colors">
+                            <PlatformIcon platform={p.platform} className="h-4 w-4" />
+                          </div>
+                          <span className="capitalize font-bold text-foreground">{p.platform}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 text-center font-medium">{p.posts}</td>
+                      <td className="px-6 py-5 text-right font-black text-foreground">{formatNumber(p.reach)}</td>
+                      <td className="px-6 py-5 text-right font-medium text-muted-foreground">{formatNumber(p.engagement)}</td>
+                      <td className="px-6 py-5 text-right font-bold text-violet-600 dark:text-violet-400">{formatNumber(p.clicks)}</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {analytics?.platformBreakdown?.map((p: any) => (
-                      <tr key={p.platform} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-4 flex items-center gap-2 font-medium">
-                          <PlatformIcon platform={p.platform} className="h-4 w-4" />
-                          <span className="capitalize">{p.platform}</span>
-                        </td>
-                        <td className="px-4 py-4">{p.posts}</td>
-                        <td className="px-4 py-4 font-semibold">{formatNumber(p.reach)}</td>
-                        <td className="px-4 py-4">{formatNumber(p.engagement)}</td>
-                        <td className="px-4 py-4 text-violet-600 dark:text-violet-400">{formatNumber(p.clicks)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </CardContent>
           </Card>
         </>

@@ -93,7 +93,14 @@ export async function listScheduledPosts(
     const [items, total] = await prisma.$transaction([
         prisma.scheduledPost.findMany({
             where,
-            include: { account: true },
+            include: { 
+                account: true,
+                content: {
+                    select: {
+                        body: true
+                    }
+                }
+            },
             skip: (query.page - 1) * query.limit,
             take: query.limit,
             orderBy: { scheduledAt: 'asc' },
@@ -116,7 +123,14 @@ export async function listScheduledPosts(
 export async function getScheduledPostById(id: string, workspaceId: string): Promise<ScheduledPostDTO> {
     const post = await prisma.scheduledPost.findFirst({
         where: { id, workspaceId },
-        include: { account: true },
+        include: { 
+            account: true,
+            content: {
+                select: {
+                    body: true
+                }
+            }
+        },
     });
 
     if (!post) throw new NotFoundError('Scheduled Post');
@@ -148,12 +162,13 @@ export async function cancelScheduledPost(id: string, workspaceId: string): Prom
 }
 
 /** Map Prisma ScheduledPost to DTO */
-function toScheduledPostDTO(post: ScheduledPost & { account?: { platform: string } }): ScheduledPostDTO {
+function toScheduledPostDTO(post: ScheduledPost & { account?: { platform: string }; content?: { body: string } }): ScheduledPostDTO {
     return {
         id: post.id,
         contentId: post.contentId,
         accountId: post.accountId,
         platform: (post.account?.platform ?? 'twitter') as ScheduledPostDTO['platform'],
+        content: post.content?.body ?? '', // Added body text to DTO
         scheduledAt: post.scheduledAt.toISOString(),
         publishedAt: post.publishedAt?.toISOString() ?? null,
         status: post.status as ScheduledPostDTO['status'],

@@ -28,19 +28,39 @@ export function RichTextEditor({ value, onChange, placeholder, limit, className 
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      onChange(editor.getText()); // Use getText for social media compatibility
+      const html = editor.getHTML();
+      // Only call onChange if the content is actually different to avoid loops
+      if (html !== value) {
+        onChange(html);
+      }
     },
     editorProps: {
       attributes: {
         class: 'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[150px] p-4',
       },
+      handlePaste: () => {
+        // Allow default paste behavior
+        return false;
+      }
     },
   });
 
   useEffect(() => {
-    // Prevent cursor jumping by only updating if content actually changed from outside
-    if (editor && editor.getText() !== value && typeof value === 'string') {
-      editor.commands.setContent(value);
+    if (!editor || value === undefined) return;
+
+    const currentHTML = editor.getHTML();
+    const currentText = editor.getText().trim();
+    
+    // Only sync from parent if the editor is not focused 
+    // OR if we are transitioning between placeholders and real content
+    const isPlaceholder = currentText === 'AI is generating...' || currentText === 'Refining...';
+    const isNewPlaceholder = value === 'AI is generating...' || value === 'Refining...';
+    
+    // Use HTML comparison for accurate state check
+    const isDifferent = currentHTML !== value && currentHTML !== `<p>${value}</p>` && currentText !== value;
+    
+    if (isDifferent && (!editor.isFocused || isPlaceholder || isNewPlaceholder)) {
+      editor.commands.setContent(value || '', { emitUpdate: false });
     }
   }, [value, editor]);
 

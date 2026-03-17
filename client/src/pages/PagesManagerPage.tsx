@@ -37,17 +37,17 @@ export function PagesManagerPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Pages Manager</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your connected social media accounts for <strong>{activeWorkspace?.name}</strong>.
+        <div className="min-w-0">
+          <h2 className="text-xl md:text-2xl font-black tracking-tight truncate">Social Accounts</h2>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1 truncate max-w-xs md:max-w-none italic">
+            Manage your brand's presence across platforms.
           </p>
         </div>
-        <Button variant="primary" className="gap-2" onClick={connectAccount}>
+        <Button variant="primary" className="gap-2 w-full sm:w-auto justify-center shadow-lg shadow-violet-500/10" onClick={connectAccount}>
           <PlusIcon className="h-4 w-4" />
-          Connect Account
+          Connect New Account
         </Button>
       </div>
 

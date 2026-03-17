@@ -27,6 +27,7 @@ export interface ScheduledPostDTO extends BaseEntity {
     contentId: string;
     accountId: string;
     platform: Platform;
+    content: string; // The draft content text
     scheduledAt: ISODateString;
     publishedAt: ISODateString | null;
     status: ScheduleStatus;
