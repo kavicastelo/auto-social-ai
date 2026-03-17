@@ -67,10 +67,21 @@ const envSchema = z.object({
     SERVER_URL: z.string().url().default('http://localhost:3001'),
 });
 
-const parsed = envSchema.safeParse(process.env);
+// Use PORT if provided by environment (common in Railway/Render)
+const rawEnv = {
+    ...process.env,
+    SERVER_PORT: process.env.PORT || process.env.SERVER_PORT || 3001,
+};
+
+const parsed = envSchema.safeParse(rawEnv);
 
 if (!parsed.success) {
-    console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
+    const errors = parsed.error.flatten().fieldErrors;
+    console.error('❌ CRITICAL: Environment validation failed:');
+    Object.entries(errors).forEach(([field, messages]) => {
+        console.error(`   - ${field}: ${messages?.join(', ')}`);
+    });
+    console.error('\nTIP: JWT secrets must be at least 32 characters long.');
     process.exit(1);
 }
 
