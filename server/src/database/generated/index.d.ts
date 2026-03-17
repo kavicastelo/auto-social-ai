@@ -68,7 +68,9 @@ export namespace $Enums {
   instagram: 'instagram',
   facebook: 'facebook',
   linkedin: 'linkedin',
-  tiktok: 'tiktok'
+  tiktok: 'tiktok',
+  google: 'google',
+  youtube: 'youtube'
 };
 
 export type Platform = (typeof Platform)[keyof typeof Platform]

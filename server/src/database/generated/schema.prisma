@@ -23,6 +23,8 @@ enum Platform {
   facebook
   linkedin
   tiktok
+  google
+  youtube
 }
 
 enum ContentStatus {

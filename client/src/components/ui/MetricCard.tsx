@@ -1,6 +1,8 @@
 import React from 'react';
 import { Card, CardContent } from './Card';
 import { TrendingUpIcon, TrendingDownIcon } from 'lucide-react';
+import { Skeleton } from './Skeleton';
+
 interface MetricCardProps {
   title: string;
   value: string | number;
@@ -10,13 +12,15 @@ interface MetricCardProps {
     isPositive: boolean;
   };
   gradientIcon?: boolean;
+  loading?: boolean;
 }
 export function MetricCard({
   title,
   value,
   icon,
   trend,
-  gradientIcon = false
+  gradientIcon = false,
+  loading = false,
 }: MetricCardProps) {
   return (
     <Card>
@@ -29,9 +33,13 @@ export function MetricCard({
             {icon}
           </div>
         </div>
-        <div className="flex items-baseline space-x-3">
-          <h2 className="text-3xl font-bold tracking-tight">{value}</h2>
-          {trend &&
+        <div className="flex items-baseline space-x-3 mt-4">
+          {loading ? (
+             <Skeleton className="h-8 w-16" />
+          ) : (
+            <h2 className="text-3xl font-bold tracking-tight">{value}</h2>
+          )}
+          {trend && !loading &&
           <div
             className={`flex items-center text-sm font-medium ${trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
 

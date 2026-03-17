@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SearchIcon, BellIcon, UserIcon, LogOutIcon, ChevronDownIcon, Building2Icon, PlusIcon, SettingsIcon } from 'lucide-react';
+import { SearchIcon, BellIcon, UserIcon, LogOutIcon, ChevronDownIcon, Building2Icon, PlusIcon, SettingsIcon, MenuIcon } from 'lucide-react';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,17 +8,29 @@ import { cn } from '../../lib/utils';
 
 interface TopbarProps {
   pageTitle: string;
+  isMobileOpen?: boolean;
+  setIsMobileOpen?: (open: boolean) => void;
 }
 
-export function Topbar({ pageTitle }: TopbarProps) {
+export function Topbar({ pageTitle, isMobileOpen, setIsMobileOpen }: TopbarProps) {
   const { user, workspaces, activeWorkspace, setActiveWorkspace, logout } = useAuth();
   const [isWsOpen, setIsWsOpen] = useState(false);
   const [isUserOpen, setIsUserOpen] = useState(false);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-6 sticky top-0 z-30 backdrop-blur-md bg-background/80">
-      <div className="flex items-center gap-4">
-        <h1 className="text-xl font-bold text-foreground tracking-tight">{pageTitle}</h1>
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-4 lg:px-6 sticky top-0 z-30 backdrop-blur-md bg-background/80">
+      <div className="flex items-center gap-2 lg:gap-4">
+        {setIsMobileOpen && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden text-muted-foreground hover:text-foreground"
+            onClick={() => setIsMobileOpen(!isMobileOpen)}
+          >
+            <MenuIcon className="h-5 w-5" />
+          </Button>
+        )}
+        <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tight hidden sm:block">{pageTitle}</h1>
 
         {/* Workspace Switcher - Polished */}
         <div className="relative ml-4">

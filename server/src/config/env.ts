@@ -33,6 +33,38 @@ const envSchema = z.object({
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
     // AI
     OPENAI_API_KEY: z.string().min(1, 'OpenAI API key is required').default('dummy_key'),
+
+    // OAuth - X
+    X_CONSUMER_KEY: z.string().optional(),
+    X_SECRET_KEY: z.string().optional(),
+    X_BEARER_TOKEN: z.string().optional(),
+
+    // OAuth - Twitter
+    TWITTER_CLIENT_ID: z.string().optional(),
+    TWITTER_CLIENT_SECRET: z.string().optional(),
+
+    // OAuth - LinkedIn
+    LINKEDIN_CLIENT_ID: z.string().optional(),
+    LINKEDIN_CLIENT_SECRET: z.string().optional(),
+
+    // OAuth - Facebook
+    FACEBOOK_CLIENT_ID: z.string().optional(),
+    FACEBOOK_CLIENT_SECRET: z.string().optional(),
+
+    // OAuth - Instagram
+    INSTAGRAM_CLIENT_ID: z.string().optional(),
+    INSTAGRAM_CLIENT_SECRET: z.string().optional(),
+
+    // OAuth - Google
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+    // OAuth - TikTok
+    TIKTOK_CLIENT_ID: z.string().optional(),
+    TIKTOK_CLIENT_SECRET: z.string().optional(),
+
+    // Server URLs for callbacks
+    SERVER_URL: z.string().url().default('http://localhost:3001'),
 });
 
 const parsed = envSchema.safeParse(process.env);
