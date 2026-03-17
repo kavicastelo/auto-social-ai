@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -55,6 +56,41 @@ export function PostSchedulerPage() {
     setCurrentDate(newDate);
   };
 
+  const queryClient = useQueryClient();
+  const updatePostMutation = useMutation({
+    mutationFn: async ({ id, newDate }: { id: string, newDate: Date }) => {
+      await api.patch(`/scheduler/${id}`, { scheduledAt: newDate.toISOString() });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+      toast.success('Post rescheduled!');
+    }
+  });
+
+  const handleDragStart = (e: React.DragEvent, postId: string) => {
+    e.dataTransfer.setData('postId', postId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetDate: Date) => {
+    e.preventDefault();
+    const postId = e.dataTransfer.getData('postId');
+    if (!postId) return;
+
+    // Find original post to maintain its time
+    const post = scheduledPosts?.find((p: any) => p.id === postId);
+    if (!post) return;
+
+    const originalTime = new Date(post.scheduledAt);
+    const newDateTime = new Date(targetDate);
+    newDateTime.setHours(originalTime.getHours(), originalTime.getMinutes(), 0, 0);
+
+    updatePostMutation.mutate({ id: postId, newDate: newDateTime });
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -103,6 +139,8 @@ export function PostSchedulerPage() {
             return (
               <div
                 key={dayIndex}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, date)}
                 className={`p-2 space-y-3 ${dayIndex !== 6 ? 'border-r border-border' : ''} min-h-full hover:bg-muted/5 transition-colors`}>
                 {isLoading ? (
                   <div className="h-12 w-full animate-pulse bg-muted rounded-md" />
@@ -110,7 +148,9 @@ export function PostSchedulerPage() {
                   posts.map((post: any) => (
                     <div
                       key={post.id}
-                      className="group relative flex flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-sm transition-all hover:border-violet-500/50 hover:shadow-md cursor-pointer overflow-hidden">
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, post.id)}
+                      className="group relative flex flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-sm transition-all hover:border-violet-500/50 hover:shadow-md cursor-grab active:cursor-grabbing overflow-hidden">
                       <div className="flex items-center justify-between">
                         <PlatformIcon
                           platform={post.platform}

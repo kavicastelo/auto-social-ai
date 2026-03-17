@@ -255,7 +255,9 @@ exports.Platform = exports.$Enums.Platform = {
   instagram: 'instagram',
   facebook: 'facebook',
   linkedin: 'linkedin',
-  tiktok: 'tiktok'
+  tiktok: 'tiktok',
+  google: 'google',
+  youtube: 'youtube'
 };
 
 exports.AccountStatus = exports.$Enums.AccountStatus = {

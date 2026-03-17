@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Textarea } from '../components/ui/Input';
+import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { PlatformIcon } from '../components/ui/PlatformIcon';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -209,10 +210,16 @@ export function ContentStudioPage() {
                   </div>
                 </div>
 
-                <Textarea
-                  className="flex-1 border-0 rounded-none focus-visible:ring-0 p-4 text-base resize-none bg-transparent"
-                  value={generatedContent[activeTab] || 'Click "Generate Content" on the left to start...'}
-                  onChange={(e) => setGeneratedContent(prev => ({ ...prev, [activeTab]: e.target.value }))}
+                <RichTextEditor
+                  className="flex-1 border-0 rounded-none focus-within:ring-0 shadow-none border-t border-border"
+                  value={generatedContent[activeTab] || ''}
+                  onChange={(val: string) => setGeneratedContent(prev => ({ ...prev, [activeTab]: val }))}
+                  placeholder='Click "Generate Content" on the left to start...'
+                  limit={
+                    activeTab === 'Twitter' ? 280 : 
+                    activeTab === 'LinkedIn' ? 3000 : 
+                    activeTab === 'Instagram' ? 2200 : 0
+                  }
                 />
               </div>
 

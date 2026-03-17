@@ -13,6 +13,7 @@ import { PlatformIcon } from '../components/ui/PlatformIcon';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { Skeleton } from '../components/ui/Skeleton';
 
 export function DashboardPage() {
   const { activeWorkspace } = useAuth();
@@ -41,28 +42,32 @@ export function DashboardPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Posts Scheduled"
-          value={isMetricsLoading ? "..." : metrics?.scheduledCount || "0"}
+          value={metrics?.scheduledCount || "0"}
           icon={<CalendarClockIcon className="h-5 w-5" />}
           trend={{ value: 12, isPositive: true }}
+          loading={isMetricsLoading}
           gradientIcon />
 
         <MetricCard
           title="Accounts"
-          value={isMetricsLoading ? "..." : metrics?.accountsCount || "0"}
+          value={metrics?.accountsCount || "0"}
           icon={<UsersIcon className="h-5 w-5" />}
+          loading={isMetricsLoading}
           trend={{ value: 0, isPositive: true }} />
 
         <MetricCard
           title="Content Items"
-          value={isMetricsLoading ? "..." : metrics?.contentCount || "0"}
+          value={metrics?.contentCount || "0"}
           icon={<FileTextIcon className="h-5 w-5" />}
+          loading={isMetricsLoading}
           trend={{ value: 5, isPositive: true }}
           gradientIcon />
 
         <MetricCard
           title="Engagement"
-          value={isMetricsLoading ? "..." : (metrics?.avgEngagement || "0") + "%"}
+          value={(metrics?.avgEngagement || "0") + "%"}
           icon={<ActivityIcon className="h-5 w-5" />}
+          loading={isMetricsLoading}
           trend={{ value: 0.5, isPositive: false }} />
       </div>
 
@@ -72,7 +77,7 @@ export function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>Upcoming Posts</CardTitle>
             <Link to="/scheduler">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400">
                 View All
               </Button>
             </Link>
@@ -80,7 +85,16 @@ export function DashboardPage() {
           <CardContent>
             <div className="space-y-6 pt-4">
               {isPostsLoading ? (
-                <p className="text-center text-muted-foreground py-8 italic">Loading recent posts...</p>
+                // Skeletons for posts
+                [1, 2, 3].map(i => (
+                  <div key={i} className="flex items-start gap-4 p-2">
+                    <Skeleton className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full" />
+                    <div className="flex-1 space-y-2">
+                       <Skeleton className="h-4 w-3/4" />
+                       <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))
               ) : recentPosts?.length > 0 ? (
                 recentPosts.map((post: any) => (
                   <div key={post.id} className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted/30 transition-colors">

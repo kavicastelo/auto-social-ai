@@ -10,6 +10,7 @@ import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
+import cookie from '@fastify/cookie';
 
 import { env } from './config/index.js';
 import { prisma } from './database/index.js';
@@ -59,6 +60,8 @@ async function buildApp() {
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
     });
+
+    await app.register(cookie);
 
     await app.register(helmet, {
         contentSecurityPolicy: {

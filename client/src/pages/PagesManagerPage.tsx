@@ -1,8 +1,10 @@
 import { PlusIcon, RefreshCwIcon, Trash2Icon, UsersIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { PlatformIcon } from '../components/ui/PlatformIcon';
+import { AccountOnboardingModal } from '../components/ui/AccountOnboardingModal';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 export function PagesManagerPage() {
   const { activeWorkspace } = useAuth();
   const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['social-accounts', activeWorkspace?.id],
@@ -30,13 +33,12 @@ export function PagesManagerPage() {
   });
 
   const connectAccount = () => {
-    // This would typically redirect to OAuth flow
-    alert('In a real app, this would open the OAuth flow for the selected platform.');
+    setIsModalOpen(true);
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Pages Manager</h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -55,7 +57,7 @@ export function PagesManagerPage() {
             <Card key={i} className="animate-pulse bg-muted min-h-[200px]" />
           ))
         ) : accounts?.length > 0 ? (
-          accounts.map((account: any) =>
+          accounts.map((account: any) => (
             <Card
               key={account.id}
               className="group hover:shadow-md transition-all duration-200 overflow-hidden">
@@ -70,7 +72,7 @@ export function PagesManagerPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => {
                       if (confirm('Are you sure you want to disconnect this account?')) {
                         disconnectMutation.mutate(account.id);
@@ -112,20 +114,20 @@ export function PagesManagerPage() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Created: {new Date(account.createdAt).toLocaleDateString()}</span>
+                  <span>Joined: {new Date(account.createdAt).toLocaleDateString()}</span>
                   <RefreshCwIcon className="h-3 w-3 cursor-pointer hover:text-foreground" />
                 </div>
               </CardContent>
             </Card>
-          )
+          ))
         ) : (
-          <div className="col-span-full py-12 text-center border-2 border-dashed rounded-xl bg-muted/20">
+          <div className="col-span-full py-16 text-center border-2 border-dashed rounded-xl bg-muted/20">
             <UsersIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium">No accounts connected</h3>
-            <p className="text-muted-foreground max-w-xs mx-auto mt-1 mb-6">
-              Connect your social media accounts to start generating and scheduling content.
+            <p className="text-muted-foreground max-w-sm mx-auto mt-2 mb-6 text-sm">
+              Connect your social media accounts to start generating AI content and scheduling posts across platforms.
             </p>
-            <Button onClick={connectAccount} variant="outline">Connect First Account</Button>
+            <Button onClick={connectAccount} variant="primary" className="shadow-sm">Connect First Account</Button>
           </div>
         )}
 
@@ -133,17 +135,23 @@ export function PagesManagerPage() {
         {accounts?.length > 0 && (
           <Card
             onClick={connectAccount}
-            className="flex flex-col items-center justify-center border-dashed border-2 hover:border-violet-500/50 hover:bg-muted/50 transition-all cursor-pointer min-h-[240px]"
+            className="flex flex-col items-center justify-center border-dashed border-2 hover:border-violet-500/50 hover:bg-muted/30 transition-all cursor-pointer min-h-[240px] group"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4 group-hover:scale-110 transition-transform">
-              <PlusIcon className="h-6 w-6 text-muted-foreground" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4 group-hover:bg-violet-500/10 group-hover:scale-110 transition-all">
+              <PlusIcon className="h-6 w-6 text-muted-foreground group-hover:text-violet-600" />
             </div>
             <h3 className="font-medium text-foreground">Add New Account</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Connect another platform
+            <p className="text-sm text-muted-foreground mt-1 text-center px-4">
+              Connect Twitter, LinkedIn, Instagram or others
             </p>
           </Card>
         )}
       </div>
-    </div>);
+
+      <AccountOnboardingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+    </div>
+  );
 }
