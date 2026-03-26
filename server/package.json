@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "tsx watch src/index.ts",
-        "build": "npm run build --workspace=@auto-social-ai/shared && prisma generate --schema=prisma/schema.prisma && tsc",
+        "build": "tsc",
         "start": "node dist/index.js",
         "typecheck": "tsc --noEmit",
         "db:generate": "prisma generate",
@@ -14,6 +14,8 @@
         "db:studio": "prisma studio"
     },
     "dependencies": {
+        "@aws-sdk/client-s3": "^3.1016.0",
+        "@aws-sdk/s3-request-presigner": "^3.1016.0",
         "@fastify/cookie": "^11.0.2",
         "@fastify/cors": "^10.0.2",
         "@fastify/helmet": "^13.0.1",
@@ -22,7 +24,7 @@
         "@fastify/oauth2": "^8.2.0",
         "@fastify/rate-limit": "^10.2.2",
         "@prisma/client": "^6.19.2",
-        "@auto-social-ai/shared": "*",
+        "axios": "^1.13.6",
         "bcrypt": "^5.1.1",
         "bullmq": "^5.34.8",
         "dotenv": "^16.4.7",
@@ -31,6 +33,9 @@
         "openai": "^6.27.0",
         "pino": "^9.6.0",
         "pino-pretty": "^13.0.0",
+        "rss-parser": "^3.13.0",
+        "sharp": "^0.34.5",
+        "twitter-api-v2": "^1.29.0",
         "zod": "^3.24.2"
     },
     "devDependencies": {

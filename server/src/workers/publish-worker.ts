@@ -21,6 +21,11 @@ export const publishWorker = new Worker<PublishJobData>(
         const { scheduledPostId } = job.data;
         const log = logger.child({ worker: 'publish-post', jobId: job.id, scheduledPostId });
 
+        if (job.name === 'finalize-approval') {
+            log.info('Finalizing generation for approval-required post. Waiting for human intervention.');
+            return;
+        }
+
         log.info('Processing publish job');
 
         const post = await prisma.scheduledPost.findUnique({
@@ -88,13 +93,35 @@ export const publishWorker = new Worker<PublishJobData>(
             const publishResult = await publisher.publishPost(config, formattedContent, post.media?.url ? [post.media.url] : undefined);
 
             if (!publishResult.success) {
-                throw new Error(`Failed to publish: ${publishResult.error || 'Unknown error'}`);
+                const errorMessage = publishResult.error || 'Unknown publishing error';
+                
+                // Handle specific rate limit retry-after hints
+                if (publishResult.retryAfter) {
+                    log.warn({ retryAfter: publishResult.retryAfter }, 'Rate limit hit, delaying job');
+                    const delayMs = publishResult.retryAfter * 1000;
+                    
+                    // Update post status to signal it's backing off
+                    await prisma.scheduledPost.update({
+                        where: { id: scheduledPostId },
+                        data: { failureReason: `Rate limited. Retrying in ${publishResult.retryAfter}s.` },
+                    });
+
+                    // BullMQ 3+ method to delay current job
+                    await job.moveToDelayed(Date.now() + delayMs, job.token);
+                    return;
+                }
+
+                throw new Error(errorMessage);
             }
 
             // Mark as published
             await prisma.scheduledPost.update({
                 where: { id: scheduledPostId },
-                data: { status: 'published', publishedAt: new Date() },
+                data: { 
+                    status: 'published', 
+                    publishedAt: new Date(),
+                    externalId: publishResult.platformId 
+                },
             });
 
             // Update content status
@@ -109,7 +136,11 @@ export const publishWorker = new Worker<PublishJobData>(
                     event: 'post_published',
                     platform: post.account.platform,
                     workspaceId: post.workspaceId,
-                    data: { contentId: post.contentId, accountId: post.accountId },
+                    data: { 
+                        contentId: post.contentId, 
+                        accountId: post.accountId,
+                        externalId: publishResult.platformId 
+                    },
                 },
             });
 

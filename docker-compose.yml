@@ -1,5 +1,5 @@
 # =============================================================================
-# Auto Social AI — Docker Compose
+# CreatorGene — Docker Compose
 # =============================================================================
 # Provides PostgreSQL and Redis for local development.
 # Usage:  docker compose up -d

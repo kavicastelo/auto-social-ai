@@ -14,6 +14,7 @@ export interface CreateScheduledPostRequest {
     platform?: string;
     accountId: string;
     publishTime: ISODateString;
+    mediaAssetId?: string;
 }
 
 /** Update scheduled post request */
@@ -28,6 +29,7 @@ export interface ScheduledPostDTO extends BaseEntity {
     accountId: string;
     platform: Platform;
     content: string; // The draft content text
+    mediaAssetId: string | null;
     scheduledAt: ISODateString;
     publishedAt: ISODateString | null;
     status: ScheduleStatus;

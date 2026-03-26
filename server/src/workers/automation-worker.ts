@@ -3,6 +3,7 @@ import { redisConnection } from '../services/redis.js';
 import { prisma } from '../database/index.js';
 import { logger } from '../utils/logger.js';
 import { autoSocialFlowProducer } from '../queues/index.js';
+import Parser from 'rss-parser';
 
 interface AutomationJobData {
     pipelineId: string;
@@ -53,9 +54,39 @@ export const automationWorker = new Worker<AutomationJobData>(
             });
 
             const config = pipeline.config as any || {};
-            const topic = config.topic || 'Auto Social AI daily updates';
+            const nodes = config.nodes || [];
+
+            let topic = config.topic || 'CreatorGene daily updates';
             const tone = config.tone || 'Professional';
             const contentType = config.contentType || 'Social Media Post';
+
+            // 1. Resolve RSS inputs 
+            const rssNode = nodes.find((n: any) => n.type === 'rss');
+            if (rssNode && rssNode.config?.url) {
+                try {
+                    const parser = new (Parser as any)();
+                    const feed = await parser.parseURL(rssNode.config.url);
+                    const entry = feed.items[0];
+                    if (entry) {
+                        log.info({ rssTitle: entry.title }, 'RSS item resolved');
+                        topic = `News Title: ${entry.title}. Summary: ${entry.snippet || entry.contentSnippet || ''}. User Intent: ${topic}`;
+                    }
+                } catch (rssError) {
+                    log.error({ err: rssError }, 'RSS fetch failed, continuing with default topic');
+                }
+            }
+
+            // 2. Resolve Format inputs (Suffix)
+            const formatNode = nodes.find((n: any) => n.type === 'format');
+            const suffix = formatNode?.config?.suffix || '';
+
+            // Initial states based on DAG presence
+            const generateAiMedia = nodes.some((n: any) => n.type === 'image');
+            const useLibraryMedia = nodes.some((n: any) => n.type === 'rss'); // rss also acts as library hint if user media is needed
+            const generateAiText = nodes.some((n: any) => n.type === 'ai');
+            const requireApproval = nodes.some((n: any) => n.type === 'approval');
+
+            log.info({ generateAiMedia, useLibraryMedia, generateAiText, requireApproval, hasSuffix: !!suffix }, 'Pipeline configuration resolved');
 
             // Build the flow for each platform
             for (const platform of pipeline.platforms) {
@@ -73,7 +104,7 @@ export const automationWorker = new Worker<AutomationJobData>(
                 const content = await prisma.content.create({
                     data: {
                         title: `Pipeline: ${pipeline.name}`,
-                        body: 'AI is generating...',
+                        body: generateAiText ? 'AI is generating...' : (config.manualBody || 'Check out our latest update!'),
                         platform: platform,
                         status: 'draft',
                         tags: [],
@@ -82,17 +113,41 @@ export const automationWorker = new Worker<AutomationJobData>(
                     }
                 });
 
-                // 2. Optional Media Asset (if configured)
+                // 2. Media Asset Resolution
                 let mediaAssetId: string | undefined;
-                if (config.generateMedia) {
+                let activeGenerateAiMedia = generateAiMedia;
+
+                if (useLibraryMedia) {
+                    const candidateMedia = await prisma.mediaAsset.findFirst({
+                        where: {
+                            workspaceId: pipeline.workspaceId,
+                            source: 'user_upload',
+                        },
+                        orderBy: { updatedAt: 'asc' },
+                    });
+
+                    if (candidateMedia) {
+                        mediaAssetId = candidateMedia.id;
+                        await prisma.mediaAsset.update({
+                            where: { id: mediaAssetId },
+                            data: { updatedAt: new Date() }
+                        });
+                        log.info({ mediaAssetId }, 'Selected user media from library');
+                    } else if (config.fallbackToAiMedia) {
+                        activeGenerateAiMedia = true;
+                    }
+                }
+
+                if (activeGenerateAiMedia && !mediaAssetId) {
                     const media = await prisma.mediaAsset.create({
                         data: {
-                            filename: `temp-${Date.now()}.svg`,
-                            originalName: 'Automation Quote',
-                            mimeType: 'image/svg+xml',
+                            filename: `temp-${Date.now()}.png`,
+                            originalName: 'Automation Graphic',
+                            mimeType: 'image/png',
                             size: 0,
                             url: '',
                             type: 'image',
+                            source: 'ai_generated',
                             workspaceId: pipeline.workspaceId,
                         }
                     });
@@ -110,14 +165,16 @@ export const automationWorker = new Worker<AutomationJobData>(
                         accountId: account.id,
                         workspaceId: pipeline.workspaceId,
                         scheduledAt: publishTime,
-                        status: 'queued',
+                        status: requireApproval ? 'pending_approval' : 'queued',
                         mediaAssetId,
                     }
                 });
 
                 // 4. Orchestrate the Flow: Generate Content + (Optional Media) -> Publish
-                const children = [
-                    {
+                const children: any[] = [];
+
+                if (generateAiText) {
+                    children.push({
                         name: 'generate-content',
                         queueName: 'content-generation',
                         data: {
@@ -126,12 +183,14 @@ export const automationWorker = new Worker<AutomationJobData>(
                             platform,
                             tone,
                             contentType,
-                            action: 'regenerate'
+                            action: 'regenerate',
+                            referenceMediaId: mediaAssetId,
+                            suffix
                         }
-                    }
-                ];
+                    });
+                }
 
-                if (mediaAssetId) {
+                if (activeGenerateAiMedia && mediaAssetId) {
                     children.push({
                         name: 'media-generation',
                         queueName: 'media-generation',
@@ -139,17 +198,21 @@ export const automationWorker = new Worker<AutomationJobData>(
                             mediaAssetId,
                             quote: config.quote || topic,
                             theme: config.mediaTheme || 'light',
-                            author: pipeline.name
-                        } as any
+                            author: pipeline.name,
+                            style: config.mediaStyle || 'vivid',
+                            size: config.mediaSize || '1024x1024'
+                        }
                     });
                 }
 
+                const parentJobName = requireApproval ? 'finalize-approval' : 'publish-post';
+
                 await autoSocialFlowProducer.add({
-                    name: 'publish-post',
+                    name: parentJobName,
                     queueName: 'publish-post',
                     data: { scheduledPostId: scheduledPost.id },
                     opts: {
-                        delay: Math.max(publishTime.getTime() - Date.now(), 0),
+                        delay: requireApproval ? 0 : Math.max(publishTime.getTime() - Date.now(), 0),
                         removeOnComplete: true
                     },
                     children
@@ -161,8 +224,7 @@ export const automationWorker = new Worker<AutomationJobData>(
             log.info('Pipeline execution initiated successfully');
         } catch (error) {
             log.error({ err: error }, 'Failed to execute pipeline');
-            
-            // Mark pipeline as errored in the database
+
             await prisma.automationPipeline.update({
                 where: { id: pipelineId },
                 data: { status: 'failed' as any }

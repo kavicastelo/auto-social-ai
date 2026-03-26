@@ -68,6 +68,16 @@ export function PostSchedulerPage() {
     }
   });
 
+  const approvePostMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/scheduler/${id}/approve`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+      toast.success('Post approved and queued for publishing!');
+    }
+  });
+
   const handleDragStart = (e: React.DragEvent, postId: string) => {
     e.dataTransfer.setData('postId', postId);
   };
@@ -94,7 +104,7 @@ export function PostSchedulerPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold tracking-tight">
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
@@ -114,7 +124,7 @@ export function PostSchedulerPage() {
             Schedule New Post
           </Button>
         </Link>
-      </div>
+      </div> */}
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-start">
@@ -148,8 +158,8 @@ export function PostSchedulerPage() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{days[i]}</p>
               <p
                 className={`mt-1 text-2xl font-black ${date.toDateString() === new Date().toDateString()
-                    ? 'text-violet-600 dark:text-violet-400'
-                    : 'text-foreground'
+                  ? 'text-violet-600 dark:text-violet-400'
+                  : 'text-foreground'
                   }`}>
                 {date.getDate()}
               </p>
@@ -162,7 +172,7 @@ export function PostSchedulerPage() {
           {calendarDays.map((date, dayIndex) => {
             const posts = getPostsForDay(date);
             const isToday = date.toDateString() === new Date().toDateString();
-            
+
             return (
               <div
                 key={dayIndex}
@@ -216,14 +226,31 @@ export function PostSchedulerPage() {
                             </div>
                           </div>
                           <Badge
-                            variant={post.status === 'scheduled' || post.status === 'published' ? 'success' : 'secondary'}
-                            className="text-[9px] px-1.5 py-0 uppercase font-bold tracking-tighter">
-                            {post.status}
+                            className={cn(
+                                "text-[9px] px-1.5 py-0 uppercase font-bold tracking-tighter",
+                                post.status === 'pending_approval' ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : 
+                                (post.status === 'published' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground")
+                            )}>
+                            {post.status === 'pending_approval' ? 'Needs Review' : post.status}
                           </Badge>
                         </div>
                         <p className="text-xs text-foreground/80 line-clamp-2 md:line-clamp-3 leading-relaxed italic">
                           "{post.content || post.body}"
                         </p>
+                        
+                        {post.status === 'pending_approval' && (
+                          <Button 
+                            size="sm" 
+                            className="mt-2 h-7 w-full text-[10px] font-black uppercase tracking-widest bg-amber-500 hover:bg-amber-600 border-0 text-white shadow-lg shadow-amber-500/20 transition-all active:scale-95"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                approvePostMutation.mutate(post.id);
+                            }}
+                            disabled={approvePostMutation.isPending}
+                          >
+                            {approvePostMutation.isPending ? 'Authorizing...' : 'Approve & Schedule'}
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>

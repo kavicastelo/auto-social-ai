@@ -7,6 +7,7 @@ import { z } from 'zod';
 const platformEnum = z.enum(['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok']);
 const pipelineStatusEnum = z.enum(['active', 'paused', 'draft', 'error']);
 const triggerTypeEnum = z.enum(['schedule', 'webhook', 'event', 'manual']);
+const statusEnum = z.enum(['draft', 'generated', 'edited', 'approved', 'published', 'archived', 'failed']);
 
 export const createPipelineSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -24,6 +25,9 @@ export const createPipelineSchema = z.object({
         quote: z.string().optional(),
         publishDelayHours: z.number().optional(),
         cron: z.string().optional(),
+        useLibraryMedia: z.boolean().optional(),
+        libraryTags: z.array(z.string()).optional(),
+        fallbackToAiMedia: z.boolean().optional(),
     }).default({}),
 });
 

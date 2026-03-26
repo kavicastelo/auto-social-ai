@@ -13,6 +13,7 @@ export interface PublishResult {
     success: boolean;
     platformId?: string; // ID of the published post on the platform
     error?: string;
+    retryAfter?: number;
 }
 
 export interface SocialPublisher {
@@ -20,4 +21,5 @@ export interface SocialPublisher {
     validateContent(content: string): boolean;
     formatContent(content: string): string | string[];
     publishPost(config: PublisherConfig, content: string | string[], mediaUrls?: string[]): Promise<PublishResult>;
+    fetchAnalytics?(config: PublisherConfig, platformId: string): Promise<{ engagement: number; reach: number; clicks: number }>;
 }

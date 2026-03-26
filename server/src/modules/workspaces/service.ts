@@ -1,8 +1,22 @@
 import { prisma, type Workspace } from '../../database/index.js';
 import { NotFoundError, BadRequestError } from '../../utils/errors.js';
+import { getLimits, SubscriptionTier } from '../../config/plans.js';
 import type { CreateWorkspaceInput, UpdateWorkspaceInput, AddMemberInput } from './schema.js';
 
 export async function createWorkspace(input: CreateWorkspaceInput, userId: string): Promise<Workspace> {
+    // 1. Check user subscription limits
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundError('User');
+
+    const limits = getLimits(user.subscriptionTier as SubscriptionTier);
+    const workspaceCount = await prisma.workspace.count({
+        where: { members: { some: { userId, role: 'owner' } } }
+    });
+
+    if (workspaceCount >= limits.maxWorkspaces) {
+        throw new BadRequestError(`Subscription limit reached: Your current tier allows a maximum of ${limits.maxWorkspaces} workspaces.`);
+    }
+
     const existing = await prisma.workspace.findUnique({
         where: { slug: input.slug },
     });
@@ -106,4 +120,60 @@ export async function addMember(workspaceId: string, input: AddMemberInput, curr
             role: input.role,
         },
     });
+}
+
+export async function getAgencyOverview(userId: string) {
+    const workspaces = await prisma.workspace.findMany({
+        where: { members: { some: { userId } } },
+        include: {
+            _count: {
+                select: {
+                    pipelines: { where: { status: 'active' } },
+                    media: true,
+                    contents: true
+                }
+            }
+        }
+    });
+
+    const workspaceIds = workspaces.map(w => w.id);
+
+    // Fetch analytics events across all workspaces
+    const analyticsEvents = await prisma.analyticsEvent.findMany({
+        where: { workspaceId: { in: workspaceIds } }
+    });
+
+    let totalReach = 0;
+    let totalEngagement = 0;
+    let totalClicks = 0;
+    let totalPosts = 0;
+
+    for (const event of analyticsEvents) {
+        if (event.event === 'post_published') totalPosts++;
+        const data = event.data as Record<string, number>;
+        totalReach += data.reach ?? 0;
+        totalEngagement += data.engagement ?? 0;
+        totalClicks += data.clicks ?? 0;
+    }
+
+    // Prepare workspaces summary
+    const workspaceBreakdown = workspaces.map(w => ({
+        id: w.id,
+        name: w.name,
+        slug: w.slug,
+        activePipelines: w._count.pipelines,
+        totalMedia: w._count.media,
+        totalContent: w._count.contents
+    }));
+
+    return {
+        aggregateMetrics: {
+            totalWorkspaces: workspaces.length,
+            totalReach,
+            totalEngagement,
+            totalClicks,
+            totalPosts
+        },
+        workspaces: workspaceBreakdown
+    };
 }

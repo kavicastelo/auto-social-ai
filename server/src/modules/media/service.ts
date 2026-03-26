@@ -2,12 +2,14 @@
 // Media Module — Service
 // =============================================================================
 
-import { prisma, type MediaAsset, type MediaType } from '../../database/index.js';
-import { NotFoundError } from '../../utils/errors.js';
-import type { MediaQueryInput } from './schema.js';
+import { prisma, type MediaAsset, type MediaType, type MediaSource } from '../../database/index.js';
+import { NotFoundError, BadRequestError } from '../../utils/errors.js';
+import type { MediaQueryInput, GetUploadUrlInput, CommitUploadInput } from './schema.js';
 import type { MediaAssetDTO, PaginationMeta } from '@auto-social-ai/shared';
 import { mediaGenerationQueue } from '../../queues/index.js';
 import type { GenerateMediaInput } from './schema.js';
+import { generateUploadUrl, getPublicUrl } from '../../services/storage.service.js';
+import { randomUUID } from 'crypto';
 
 /** Determine media type from MIME type */
 function getMediaType(mimeType: string): MediaType {
@@ -16,21 +18,42 @@ function getMediaType(mimeType: string): MediaType {
     return 'image';
 }
 
+/** Generate presigned URL for direct S3 upload */
+export async function getUploadUrl(
+    input: GetUploadUrlInput,
+    workspaceId: string,
+): Promise<{ uploadUrl: string; key: string; publicUrl: string }> {
+    // Basic validation
+    const mediaType = getMediaType(input.contentType);
+    if (!mediaType) throw new BadRequestError('Unsupported content type');
+
+    const extension = input.fileName.split('.').pop() || 'bin';
+    const key = `workspaces/${workspaceId}/${randomUUID()}-${Date.now()}.${extension}`;
+    
+    const uploadUrl = await generateUploadUrl(key, input.contentType);
+    const publicUrl = getPublicUrl(key);
+
+    return { uploadUrl, key, publicUrl };
+}
+
 /** Create a media asset record after upload */
-export async function createMediaAsset(
-    file: { filename: string; originalName: string; mimeType: string; size: number; url: string },
+export async function commitUpload(
+    input: CommitUploadInput,
     workspaceId: string,
 ): Promise<MediaAssetDTO> {
-    const mediaType = getMediaType(file.mimeType);
+    const mediaType = getMediaType(input.mimeType);
 
     const asset = await prisma.mediaAsset.create({
         data: {
-            filename: file.filename,
-            originalName: file.originalName,
-            mimeType: file.mimeType,
-            size: file.size,
-            url: file.url,
+            filename: input.key.split('/').pop() || input.key,
+            originalName: input.originalName,
+            mimeType: input.mimeType,
+            size: input.size,
+            url: getPublicUrl(input.key),
             type: mediaType,
+            source: 'user_upload',
+            tags: input.tags || [],
+            metadata: input.metadata || {},
             workspaceId,
         },
     });
@@ -61,6 +84,8 @@ export async function generateMedia(
         quote: input.quote,
         author: input.author,
         theme: input.theme,
+        style: input.style,
+        size: input.size,
     });
 
     return toMediaDTO(asset);
@@ -119,6 +144,10 @@ function toMediaDTO(asset: MediaAsset): MediaAssetDTO {
         size: asset.size,
         url: asset.url,
         type: asset.type as MediaAssetDTO['type'],
+        source: asset.source as MediaAssetDTO['source'],
+        hash: asset.hash,
+        tags: asset.tags,
+        metadata: asset.metadata as Record<string, any>,
         workspaceId: asset.workspaceId,
         createdAt: asset.createdAt.toISOString(),
         updatedAt: asset.updatedAt.toISOString(),

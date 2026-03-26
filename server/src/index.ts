@@ -31,6 +31,8 @@ import { workspacesRoutes } from './modules/workspaces/routes.js';
 // Workers (imported for side-effect — starts processing)
 import './workers/index.js';
 
+import { setupCronJobs } from './workers/cron.js';
+
 // =============================================================================
 // Build Application
 // =============================================================================
@@ -141,6 +143,9 @@ async function start() {
         });
 
         logger.info(`🚀 Server running at http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
+
+        // Initialize global CRON jobs
+        await setupCronJobs();
 
         // Graceful shutdown
         const shutdown = async (signal: string) => {

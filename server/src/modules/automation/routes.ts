@@ -3,16 +3,18 @@
 // =============================================================================
 
 import type { FastifyInstance } from 'fastify';
-import { authGuard } from '../../middleware/index.js';
+import { authGuard, rbacGuard } from '../../middleware/index.js';
 import * as controller from './controller.js';
 
 export async function automationRoutes(app: FastifyInstance): Promise<void> {
     app.addHook('preHandler', authGuard);
 
-    app.post('/create', controller.create);
     app.get('/', controller.list);
     app.get('/:id', controller.getById);
-    app.put('/:id', controller.update);
-    app.delete('/:id', controller.remove);
-    app.post('/:id/trigger', controller.trigger);
+
+    // Restricted management routes
+    app.post('/create', { preHandler: [rbacGuard(['owner', 'admin'])] }, controller.create);
+    app.put<{ Params: { id: string } }>('/:id', { preHandler: [rbacGuard(['owner', 'admin'])] }, controller.update);
+    app.delete<{ Params: { id: string } }>('/:id', { preHandler: [rbacGuard(['owner', 'admin'])] }, controller.remove);
+    app.post<{ Params: { id: string } }>('/:id/trigger', { preHandler: [rbacGuard(['owner', 'admin'])] }, controller.trigger);
 }

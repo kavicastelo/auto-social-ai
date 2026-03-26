@@ -5,7 +5,7 @@
 // exhausting database connections during development hot-reloads.
 // =============================================================================
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma } from './generated/index.js';
 import { env } from '../config/index.js';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };

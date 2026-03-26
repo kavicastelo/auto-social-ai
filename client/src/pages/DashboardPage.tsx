@@ -91,8 +91,8 @@ export function DashboardPage() {
                   <div key={i} className="flex items-start gap-4 p-4">
                     <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
                     <div className="flex-1 space-y-2">
-                       <Skeleton className="h-4 w-3/4" />
-                       <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
                     </div>
                   </div>
                 ))
@@ -156,7 +156,7 @@ export function DashboardPage() {
                 <span className="font-bold text-sm">Connect Account</span>
               </Button>
             </Link>
-            
+
             <div className="mt-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 p-5 text-white shadow-xl">
               <div className="relative z-10">
                 <h4 className="font-black text-sm uppercase tracking-widest mb-1.5 opacity-90">
@@ -166,10 +166,10 @@ export function DashboardPage() {
                   Set up an automation pipeline to automatically generate and
                   schedule your weekly content across all platforms.
                 </p>
-                <Link to="/automation">
-                   <Button variant="secondary" size="sm" className="mt-4 w-full h-8 text-[10px] font-black uppercase tracking-widest bg-white/20 hover:bg-white/30 border-0 text-white">
-                     Go to Pipelines
-                   </Button>
+                <Link to="/pipelines">
+                  <Button variant="secondary" size="sm" className="mt-4 w-full h-8 text-[10px] font-black uppercase tracking-widest bg-white/20 hover:bg-white/30 border-0 text-white">
+                    Go to Pipelines
+                  </Button>
                 </Link>
               </div>
               <ActivityIcon className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 rotate-12" />

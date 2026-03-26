@@ -1,4 +1,4 @@
-# Auto Social AI
+# CreatorGene
 
 > AI-powered social media automation platform — generate content, schedule posts, manage accounts, and track analytics across multiple platforms.
 

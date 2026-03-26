@@ -1,5 +1,5 @@
 // =============================================================================
-// Prisma Schema — Auto Social AI
+// Prisma Schema — CreatorGene
 // =============================================================================
 // Normalized schema with proper indexes, enums, and relationships.
 // Run `npx prisma migrate dev` to apply changes.
@@ -7,6 +7,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/database/generated"
 }
 
 datasource db {
@@ -43,6 +44,7 @@ enum ScheduleStatus {
   published
   failed
   cancelled
+  pending_approval
 }
 
 enum AccountStatus {
@@ -73,6 +75,11 @@ enum MediaType {
   gif
 }
 
+enum MediaSource {
+  user_upload
+  ai_generated
+}
+
 // ── Models ───────────────────────────────────────────────────────────────────
 
 model User {
@@ -81,6 +88,9 @@ model User {
   password  String
   name      String
   avatarUrl String?
+
+  subscriptionTier String  @default("free")
+  stripeCustomerId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -176,6 +186,8 @@ model Content {
   // Relations
   author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  mediaAssetId String?
+  mediaAsset   MediaAsset?   @relation(fields: [mediaAssetId], references: [id])
   posts     ScheduledPost[]
 
   @@index([workspaceId])
@@ -191,6 +203,7 @@ model ScheduledPost {
   publishedAt   DateTime?
   status        ScheduleStatus @default(pending)
   failureReason String?
+  externalId    String?
 
   contentId   String
   accountId   String
@@ -245,6 +258,10 @@ model MediaAsset {
   size         Int
   url          String
   type         MediaType
+  source       MediaSource @default(user_upload)
+  hash         String?   // For deduplication
+  tags         String[]
+  metadata     Json      @default("{}") // Dimensions, duration, pipeline hints
 
   workspaceId String
 
@@ -253,6 +270,7 @@ model MediaAsset {
 
   // Relations
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contents  Content[]
   posts     ScheduledPost[]
 
   @@index([workspaceId])

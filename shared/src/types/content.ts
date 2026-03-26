@@ -16,6 +16,7 @@ export interface GenerateContentRequest {
     platforms: Platform[];
     tone?: string;
     type: string;
+    includeMedia?: boolean;
 }
 
 /** Content edit request */
@@ -25,6 +26,7 @@ export interface EditContentRequest {
     status?: ContentStatus;
     platform?: Platform;
     tags?: string[];
+    mediaAssetId?: string;
 }
 
 /** Content DTO */
@@ -37,4 +39,5 @@ export interface ContentDTO extends BaseEntity {
     workspaceId: string;
     authorId: string;
     scheduledAt: ISODateString | null;
+    mediaAssetId?: string;
 }

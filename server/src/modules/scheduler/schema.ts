@@ -11,6 +11,7 @@ export const createScheduledPostSchema = z.object({
     platform: z.string().optional(),
     accountId: z.string().min(1, 'Account ID is required'),
     publishTime: z.string().datetime('Invalid datetime format'),
+    mediaAssetId: z.string().optional(),
 });
 
 export const updateScheduledPostSchema = z.object({

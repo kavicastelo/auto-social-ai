@@ -2,57 +2,72 @@ import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../services/redis.js';
 import { prisma } from '../database/index.js';
 import { logger } from '../utils/logger.js';
-import { Buffer } from 'buffer';
+import { env } from '../config/index.js';
+import OpenAI from 'openai';
+import axios from 'axios';
+import { uploadBuffer } from '../services/storage.service.js';
 
 interface MediaJobData {
     mediaAssetId: string;
     quote: string;
     author?: string;
     theme?: string;
+    style?: 'vivid' | 'natural';
+    size?: '1024x1024' | '1024x1792' | '1792x1024';
 }
+
+const openai = new OpenAI({
+    apiKey: env.OPENAI_API_KEY,
+});
 
 export const mediaWorker = new Worker<MediaJobData>(
     'media-generation',
     async (job: Job<MediaJobData>) => {
-        const { mediaAssetId, quote, author, theme } = job.data;
+        const { mediaAssetId, quote, author, theme, style, size } = job.data;
         const log = logger.child({ worker: 'media-generation', jobId: job.id, mediaAssetId });
 
         log.info('Processing media generation job');
 
         try {
-            // Very simple SVG generation for the quote
-            const bgColor = theme === 'dark' ? '#1a1a1a' : '#ffffff';
-            const textColor = theme === 'dark' ? '#ffffff' : '#1a1a1a';
-            const authorText = author || 'Anonymous';
+            log.info({ quote, style, size }, 'Generating DALL-E 3 image');
 
-            const svg = `
-<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1080" height="1080" fill="${bgColor}"/>
-    <text x="540" y="500" font-family="Arial, sans-serif" font-size="48" fill="${textColor}" text-anchor="middle" font-weight="bold">
-        "${quote}"
-    </text>
-    <text x="540" y="600" font-family="Arial, sans-serif" font-size="32" fill="${textColor}" text-anchor="middle" opacity="0.8">
-        - ${authorText}
-    </text>
-</svg>
-`;
+            const response = await openai.images.generate({
+                model: 'dall-e-3',
+                prompt: `A high-quality, professional social media graphic for the following quote: "${quote}". ${author ? `By ${author}.` : ''} Style: ${style || 'vivid'}. Focus on visual storytelling suitable for ${theme || 'modern'} aesthetic. No text unless it is the quote itself and looks professional.`,
+                n: 1,
+                size: (size as any) || '1024x1024',
+                quality: 'standard',
+                style: style || 'vivid',
+            });
 
-            // We generate the raw SVG string and use it directly. 
-            // In a real application, we would upload this to S3 and save the URL.
-            const base64Svg = Buffer.from(svg).toString('base64');
-            const dataUrl = `data:image/svg+xml;base64,${base64Svg}`;
+            const imageUrl = response?.data?.[0]?.url;
+            if (!imageUrl) {
+                throw new Error('DALL-E 3 returned no image URL');
+            }
 
+            // Permanent Storage: Download from OpenAI and upload to S3/R2
+            log.info('Downloading image from OpenAI for permanent storage');
+            const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(imageResponse.data);
+            const filename = `ai-${Date.now()}.png`;
+            const storageKey = `generated/${mediaAssetId}/${filename}`;
+
+            log.info({ storageKey }, 'Uploading to permanent storage');
+            const permanentUrl = await uploadBuffer(storageKey, buffer, 'image/png');
+            
             await prisma.mediaAsset.update({
                 where: { id: mediaAssetId },
                 data: {
-                    url: dataUrl,
-                    mimeType: 'image/svg+xml',
-                    size: svg.length,
-                    filename: `quote-${Date.now()}.svg`,
+                    url: permanentUrl,
+                    mimeType: 'image/png',
+                    size: buffer.length,
+                    filename: filename,
+                    source: 'ai_generated',
+                    tags: ['ai_generated', style || 'vivid', 'dalle3'],
                 },
             });
 
-            log.info('Media generated successfully');
+            log.info({ permanentUrl }, 'DALL-E 3 image generated and stored successfully');
         } catch (error) {
             log.error({ err: error }, 'Failed to generate media');
 

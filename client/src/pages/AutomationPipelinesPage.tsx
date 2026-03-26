@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -27,7 +27,8 @@ import {
   Trash2Icon,
   PlusIcon,
   ChevronDownIcon,
-  RefreshCwIcon
+  RefreshCwIcon,
+  ShieldCheckIcon
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -96,6 +97,10 @@ export function AutomationPipelinesPage() {
   const [pipelineDescription, setPipelineDescription] = useState('');
   const [pipelineStatus, setPipelineStatus] = useState('draft');
   const [activePipelineId, setActivePipelineId] = useState<string | null>(null);
+
+  const canModify = useMemo(() => {
+    return activeWorkspace?.role === 'owner' || activeWorkspace?.role === 'admin';
+  }, [activeWorkspace]);
 
   const { data: pipelines, isLoading } = useQuery({
     queryKey: ['pipelines', activeWorkspace?.id],
@@ -234,6 +239,7 @@ export function AutomationPipelinesPage() {
       case 'format': return Settings2Icon;
       case 'schedule': return CalendarIcon;
       case 'publish': return SendIcon;
+      case 'approval': return ShieldCheckIcon;
       default: return Settings2Icon;
     }
   };
@@ -246,6 +252,7 @@ export function AutomationPipelinesPage() {
       case 'format': return 'bg-orange-500/10 text-orange-600';
       case 'schedule': return 'bg-emerald-500/10 text-emerald-600';
       case 'publish': return 'bg-indigo-500/10 text-indigo-600';
+      case 'approval': return 'bg-amber-500/10 text-amber-600';
       default: return 'bg-muted text-muted-foreground';
     }
   };
@@ -331,9 +338,11 @@ export function AutomationPipelinesPage() {
                 <div className="absolute top-10 left-0 w-64 md:w-72 bg-card border border-border rounded-xl shadow-2xl p-2 z-50 hidden group-hover/selector:block animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between px-2 py-1.5 mb-2 border-b border-border/50">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">My Architectures</span>
-                    <Button variant="primary" size="sm" className="h-6 px-2 text-[10px]" onClick={resetToNew}>
-                      <PlusIcon className="h-3 w-3 mr-1" /> Create New
-                    </Button>
+                    {canModify && (
+                      <Button variant="primary" size="sm" className="h-6 px-2 text-[10px]" onClick={resetToNew}>
+                        <PlusIcon className="h-3 w-3 mr-1" /> Create New
+                      </Button>
+                    )}
                   </div>
                   <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
                     {pipelines?.map((p: any) => (
@@ -377,7 +386,7 @@ export function AutomationPipelinesPage() {
               size="sm"
               className="h-9 gap-2 font-semibold flex-1 sm:flex-none justify-center"
               onClick={() => pipeline && triggerMutation.mutate(pipeline.id)}
-              disabled={!pipeline || triggerMutation.isPending}
+              disabled={!canModify || !pipeline || triggerMutation.isPending}
             >
               {triggerMutation.isPending ? <RefreshCwIcon className="h-3.5 w-3.5 animate-spin" /> : <PlayIcon className="h-3.5 w-3.5 text-emerald-500" />}
               <span className="xs:inline">Test Run</span>
@@ -387,7 +396,7 @@ export function AutomationPipelinesPage() {
               size="sm"
               className="h-9 gap-2 px-3 md:px-5 font-bold shadow-lg shadow-primary/20 flex-1 sm:flex-none justify-center"
               onClick={() => saveMutation.mutate()}
-              disabled={saveMutation.isPending}
+              disabled={!canModify || saveMutation.isPending}
             >
               {saveMutation.isPending ? <RefreshCwIcon className="h-3.5 w-3.5 animate-spin" /> : <SaveIcon className="h-3.5 w-3.5" />}
               <span className="xs:inline">Save Design</span>
@@ -409,7 +418,11 @@ export function AutomationPipelinesPage() {
               onConnect={onConnect}
               nodeTypes={nodeTypes}
               fitView
-              className="bg-muted/5">
+              className="bg-muted/5"
+              nodesDraggable={canModify}
+              nodesConnectable={canModify}
+              elementsSelectable={true}
+            >
               <Background color="#aaa" gap={20} size={1} />
               <Controls className="bg-card border-border fill-foreground" />
               <MiniMap
@@ -429,7 +442,16 @@ export function AutomationPipelinesPage() {
             </ReactFlow>
           )}
 
-          {activePipelineId === 'new' && (
+          {!canModify && (
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-amber-500/10 border border-amber-500/20 rounded-full py-1.5 px-4 backdrop-blur-md z-10 shadow-xl flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-amber-500" />
+              <p className="text-[10px] text-amber-700 dark:text-amber-300 font-bold uppercase tracking-widest leading-none">
+                Read-Only Library Access
+              </p>
+            </div>
+          )}
+
+          {canModify && activePipelineId === 'new' && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-violet-500/10 border border-violet-500/20 rounded-full py-1.5 px-4 backdrop-blur-md z-10 shadow-2xl flex items-center gap-2 border-dashed">
               <div className="h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
               <p className="text-[10px] text-violet-700 dark:text-violet-300 font-bold uppercase tracking-widest leading-none">
@@ -458,11 +480,12 @@ export function AutomationPipelinesPage() {
               {['draft', 'active', 'paused'].map((status) => (
                 <button
                   key={status}
+                  disabled={!canModify}
                   onClick={() => setPipelineStatus(status)}
                   className={`flex-1 py-1 px-2 rounded-md text-[10px] font-bold uppercase transition-all ${pipelineStatus === status
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                    } ${!canModify && 'opacity-50 cursor-not-allowed'}`}
                 >
                   {status}
                 </button>
@@ -474,33 +497,37 @@ export function AutomationPipelinesPage() {
             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Description</label>
             <textarea
               value={pipelineDescription}
+              readOnly={!canModify}
               onChange={(e) => setPipelineDescription(e.target.value)}
               placeholder="What is the purpose of this pipeline?"
               rows={2}
-              className="w-full bg-muted/50 border border-border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full bg-muted/50 border border-border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
             />
           </div>
 
           <div className="space-y-3">
             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Node Library</label>
             <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('rss')}>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('rss')} disabled={!canModify}>
                 <DatabaseIcon className="h-4 w-4 text-blue-500" /> RSS Feed
               </Button>
-              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('ai')}>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('ai')} disabled={!canModify}>
                 <SparklesIcon className="h-4 w-4 text-violet-500" /> AI Generator
               </Button>
-              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('format')}>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('format')} disabled={!canModify}>
                 <Settings2Icon className="h-4 w-4 text-orange-500" /> Formatter
               </Button>
-              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('schedule')}>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('schedule')} disabled={!canModify}>
                 <CalendarIcon className="h-4 w-4 text-emerald-500" /> Scheduler
               </Button>
-              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('image')}>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('image')} disabled={!canModify}>
                 <ImageIcon className="h-4 w-4 text-pink-500" /> Media Gen
               </Button>
-              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('publish')}>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('publish')} disabled={!canModify}>
                 <SendIcon className="h-4 w-4 text-indigo-500" /> Publisher
+              </Button>
+              <Button variant="outline" size="sm" className="h-14 flex-col gap-1 text-[10px]" onClick={() => addNode('approval')} disabled={!canModify}>
+                <ShieldCheckIcon className="h-4 w-4 text-amber-500" /> Review Gate
               </Button>
             </div>
           </div>
@@ -513,6 +540,7 @@ export function AutomationPipelinesPage() {
                 size="sm"
                 className="h-8 text-xs gap-1.5"
                 onClick={() => setTriggerType('schedule')}
+                disabled={!canModify}
               >
                 <CalendarIcon className="h-3 w-3" /> Recurring
               </Button>
@@ -521,6 +549,7 @@ export function AutomationPipelinesPage() {
                 size="sm"
                 className="h-8 text-xs gap-1.5"
                 onClick={() => setTriggerType('manual')}
+                disabled={!canModify}
               >
                 <PlayIcon className="h-3 w-3" /> Manual
               </Button>
@@ -533,9 +562,10 @@ export function AutomationPipelinesPage() {
               <input
                 type="text"
                 value={cron}
+                readOnly={!canModify}
                 onChange={(e) => setCron(e.target.value)}
                 placeholder="e.g., 0 9 * * *"
-                className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
               />
               <p className="text-[10px] text-muted-foreground italic px-1">Tip: "0 9 * * *" means 9 AM daily</p>
             </div>
@@ -545,10 +575,11 @@ export function AutomationPipelinesPage() {
             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Context Topic</label>
             <textarea
               value={pipelineTopic}
+              readOnly={!canModify}
               onChange={(e) => setPipelineTopic(e.target.value)}
               placeholder="What should this pipeline talk about?"
               rows={3}
-              className="w-full bg-muted/50 border border-border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full bg-muted/50 border border-border rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
             />
           </div>
 
@@ -558,6 +589,7 @@ export function AutomationPipelinesPage() {
               {['twitter', 'linkedin', 'instagram', 'facebook', 'tiktok'].map(plat => (
                 <button
                   key={plat}
+                  disabled={!canModify}
                   onClick={() => {
                     setSelectedPlats((prev: string[]) =>
                       prev.includes(plat) ? prev.filter((p: string) => p !== plat) : [...prev, plat]
@@ -566,7 +598,7 @@ export function AutomationPipelinesPage() {
                   className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all border ${selectedPlats.includes(plat)
                     ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105'
                     : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
-                    }`}
+                    } ${!canModify && 'opacity-50 cursor-not-allowed'}`}
                 >
                   {plat}
                 </button>
