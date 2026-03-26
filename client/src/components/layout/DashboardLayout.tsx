@@ -23,6 +23,7 @@ export function DashboardLayout({
       '/pipelines': 'Automation Pipelines',
       '/pages': 'Pages Manager',
       '/analytics': 'Analytics',
+      '/agency': 'Agency Hub',
       '/media': 'Media Library',
       '/settings': 'Settings'
     };

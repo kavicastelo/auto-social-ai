@@ -10,6 +10,7 @@ import { PostSchedulerPage } from './pages/PostSchedulerPage';
 import { AutomationPipelinesPage } from './pages/AutomationPipelinesPage';
 import { PagesManagerPage } from './pages/PagesManagerPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { AgencyDashboardPage } from './pages/AgencyDashboardPage';
 import { MediaLibraryPage } from './pages/MediaLibraryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { Toaster } from 'sonner';
@@ -110,7 +111,7 @@ function LoginPage() {
 
         <div className="relative space-y-8 p-8 md:p-10 border border-border/50 rounded-3xl shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-600 to-indigo-600" />
-          
+
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-6">
               <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-violet-500/20">
@@ -121,7 +122,7 @@ function LoginPage() {
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </h1>
             <p className="text-sm text-muted-foreground font-medium">
-              {isLogin ? 'Sign in to access your social hub' : 'Start your journey with Auto Social AI'}
+              {isLogin ? 'Sign in to access your social hub' : 'Start your journey with CreatorGene'}
             </p>
           </div>
 
@@ -146,7 +147,7 @@ function LoginPage() {
                 </div>
               </div>
             )}
-            
+
             <div className="space-y-2">
               <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
               <input
@@ -181,8 +182,8 @@ function LoginPage() {
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
-                   <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                   Processing
+                  <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing
                 </div>
               ) : isLogin ? 'Sign In Securely' : 'Launch Account'}
             </button>
@@ -267,6 +268,14 @@ function MainApp() {
         <ProtectedRoute>
           <DashboardLayout>
             <MediaLibraryPage />
+          </DashboardLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/agency" element={
+        <ProtectedRoute>
+          <DashboardLayout>
+            <AgencyDashboardPage />
           </DashboardLayout>
         </ProtectedRoute>
       } />

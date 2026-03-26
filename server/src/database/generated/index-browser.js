@@ -127,6 +127,8 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   name: 'name',
   avatarUrl: 'avatarUrl',
+  subscriptionTier: 'subscriptionTier',
+  stripeCustomerId: 'stripeCustomerId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -173,7 +175,8 @@ exports.Prisma.ContentScalarFieldEnum = {
   authorId: 'authorId',
   workspaceId: 'workspaceId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  mediaAssetId: 'mediaAssetId'
 };
 
 exports.Prisma.ScheduledPostScalarFieldEnum = {
@@ -182,6 +185,7 @@ exports.Prisma.ScheduledPostScalarFieldEnum = {
   publishedAt: 'publishedAt',
   status: 'status',
   failureReason: 'failureReason',
+  externalId: 'externalId',
   contentId: 'contentId',
   accountId: 'accountId',
   workspaceId: 'workspaceId',
@@ -213,6 +217,10 @@ exports.Prisma.MediaAssetScalarFieldEnum = {
   size: 'size',
   url: 'url',
   type: 'type',
+  source: 'source',
+  hash: 'hash',
+  tags: 'tags',
+  metadata: 'metadata',
   workspaceId: 'workspaceId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -284,7 +292,8 @@ exports.ScheduleStatus = exports.$Enums.ScheduleStatus = {
   publishing: 'publishing',
   published: 'published',
   failed: 'failed',
-  cancelled: 'cancelled'
+  cancelled: 'cancelled',
+  pending_approval: 'pending_approval'
 };
 
 exports.PipelineStatus = exports.$Enums.PipelineStatus = {
@@ -306,6 +315,11 @@ exports.MediaType = exports.$Enums.MediaType = {
   image: 'image',
   video: 'video',
   gif: 'gif'
+};
+
+exports.MediaSource = exports.$Enums.MediaSource = {
+  user_upload: 'user_upload',
+  ai_generated: 'ai_generated'
 };
 
 exports.Prisma.ModelName = {

@@ -44,23 +44,23 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Content */}
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-lg animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border p-4 bg-muted/20">
           <div className="flex gap-1.5 items-center">
-             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600">
-               <LinkIcon className="h-4 w-4" />
-             </div>
-             <h3 className="font-semibold text-sm">Connect Social Account</h3>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600">
+              <LinkIcon className="h-4 w-4" />
+            </div>
+            <h3 className="font-semibold text-sm">Connect Social Account</h3>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="rounded-full p-1.5 hover:bg-muted text-muted-foreground transition-colors"
           >
@@ -70,7 +70,7 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
 
         {/* Progress bar */}
         <div className="h-1 w-full bg-muted">
-          <div 
+          <div
             className="h-full bg-violet-500 transition-all duration-300"
             style={{ width: `${(step / 3) * 100}%` }}
           />
@@ -85,18 +85,18 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight">Expand Your Reach</h2>
               <p className="text-muted-foreground">
-                AutoSocial AI needs permission to publish on your behalf. We use secure OAuth—meaning we never see or store your passwords.
+                CreatorGene needs permission to publish on your behalf. We use secure OAuth—meaning we never see or store your passwords.
               </p>
             </div>
             <div className="bg-muted/50 rounded-lg p-4 text-left space-y-3 border border-border">
-               <div className="flex items-start gap-3 text-sm">
-                 <CheckCircle2Icon className="h-4 w-4 text-emerald-500 mt-0.5" />
-                 <span><strong>Direct Publishing:</strong> Post immediately or schedule for later.</span>
-               </div>
-               <div className="flex items-start gap-3 text-sm">
-                 <CheckCircle2Icon className="h-4 w-4 text-emerald-500 mt-0.5" />
-                 <span><strong>Analytics Access:</strong> Track engagement and follower growth automatically.</span>
-               </div>
+              <div className="flex items-start gap-3 text-sm">
+                <CheckCircle2Icon className="h-4 w-4 text-emerald-500 mt-0.5" />
+                <span><strong>Direct Publishing:</strong> Post immediately or schedule for later.</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm">
+                <CheckCircle2Icon className="h-4 w-4 text-emerald-500 mt-0.5" />
+                <span><strong>Analytics Access:</strong> Track engagement and follower growth automatically.</span>
+              </div>
             </div>
             <Button className="w-full gap-2 mt-4 py-6 text-md font-semibold" onClick={handleNext}>
               Let's get started <ChevronRightIcon className="h-4 w-4" />
@@ -117,8 +117,8 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
                   onClick={() => setSelectedPlatform(platform.id)}
                   className={cn(
                     "flex text-left items-center gap-4 p-4 rounded-xl border transition-all duration-200",
-                    selectedPlatform === platform.id 
-                      ? "border-violet-500 bg-violet-500/5 shadow-sm ring-1 ring-violet-500" 
+                    selectedPlatform === platform.id
+                      ? "border-violet-500 bg-violet-500/5 shadow-sm ring-1 ring-violet-500"
                       : "border-border bg-card hover:bg-muted/50 hover:border-muted-foreground/30"
                   )}
                 >
@@ -132,7 +132,7 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold text-sm">{platform.name}</h4>
                       {platform.recommended && (
-                         <span className="text-[10px] bg-indigo-500/10 text-indigo-600 px-1.5 py-0.5 rounded font-medium uppercase tracking-wider">Recommended</span>
+                        <span className="text-[10px] bg-indigo-500/10 text-indigo-600 px-1.5 py-0.5 rounded font-medium uppercase tracking-wider">Recommended</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{platform.description}</p>
@@ -148,14 +148,14 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
             </div>
 
             <div className="flex gap-3 mt-6 pt-4 border-t border-border">
-               <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
-               <Button 
-                 className="flex-1 shadow-sm"
-                 disabled={!selectedPlatform} 
-                 onClick={handleNext}
-               >
-                 Continue Configuration
-               </Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
+              <Button
+                className="flex-1 shadow-sm"
+                disabled={!selectedPlatform}
+                onClick={handleNext}
+              >
+                Continue Configuration
+              </Button>
             </div>
           </div>
         )}
@@ -164,18 +164,18 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
         {step === 3 && (
           <div className="p-8 text-center space-y-6">
             <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-               <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-ping opacity-50" />
-               <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-violet-500 text-white shadow-lg z-10">
-                 {selectedPlatform && (
-                   <PlatformIcon platform={selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)} className="h-8 w-8" />
-                 )}
-               </div>
+              <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-ping opacity-50" />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-violet-500 text-white shadow-lg z-10">
+                {selectedPlatform && (
+                  <PlatformIcon platform={selectedPlatform.charAt(0).toUpperCase() + selectedPlatform.slice(1)} className="h-8 w-8" />
+                )}
+              </div>
             </div>
-            
+
             <div className="space-y-2">
               <h2 className="text-xl font-bold tracking-tight">Ready to authenticate</h2>
               <p className="text-sm text-muted-foreground">
-                You will be redirected securely to the provider. 
+                You will be redirected securely to the provider.
                 Log in and authorize our application to proceed.
               </p>
             </div>
@@ -186,10 +186,10 @@ export function AccountOnboardingModal({ isOpen, onClose }: AccountOnboardingMod
             </div>
 
             <div className="flex gap-3 mt-6">
-               <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>Change Platform</Button>
-               <Button onClick={handleConnect} className="flex-1 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90">
-                  Connect Now <LinkIcon className="h-4 w-4" />
-               </Button>
+              <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>Change Platform</Button>
+              <Button onClick={handleConnect} className="flex-1 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:opacity-90">
+                Connect Now <LinkIcon className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}

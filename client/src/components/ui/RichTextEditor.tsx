@@ -12,9 +12,10 @@ interface RichTextEditorProps {
   placeholder?: string;
   limit?: number;
   className?: string;
+  readOnly?: boolean;
 }
 
-export function RichTextEditor({ value, onChange, placeholder, limit, className }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, limit, className, readOnly }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -64,6 +65,11 @@ export function RichTextEditor({ value, onChange, placeholder, limit, className 
     }
   }, [value, editor]);
 
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(!readOnly);
+  }, [readOnly, editor]);
+
   if (!editor) {
     return <div className="min-h-[150px] animate-pulse bg-muted rounded-md" />;
   }
@@ -74,11 +80,12 @@ export function RichTextEditor({ value, onChange, placeholder, limit, className 
   return (
     <div className={cn("flex flex-col rounded-xl border border-input bg-background shadow-sm focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500 transition-all", className)}>
       {/* Toolbar */}
-      <div className="flex items-center gap-1 border-b border-border bg-muted/30 p-2">
+      <div className={cn("flex items-center gap-1 border-b border-border bg-muted/30 p-2", readOnly && "opacity-50 pointer-events-none")}>
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={cn("p-1.5 rounded-md hover:bg-muted text-muted-foreground", editor.isActive('bold') && "bg-muted text-foreground font-bold")}
           title="Bold"
+          disabled={readOnly}
         >
           <BoldIcon className="h-4 w-4" />
         </button>
@@ -86,6 +93,7 @@ export function RichTextEditor({ value, onChange, placeholder, limit, className 
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={cn("p-1.5 rounded-md hover:bg-muted text-muted-foreground", editor.isActive('italic') && "bg-muted text-foreground")}
           title="Italic"
+          disabled={readOnly}
         >
           <ItalicIcon className="h-4 w-4" />
         </button>
@@ -94,6 +102,7 @@ export function RichTextEditor({ value, onChange, placeholder, limit, className 
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={cn("p-1.5 rounded-md hover:bg-muted text-muted-foreground", editor.isActive('bulletList') && "bg-muted text-foreground")}
           title="Bullet List"
+          disabled={readOnly}
         >
           <ListIcon className="h-4 w-4" />
         </button>
@@ -101,6 +110,7 @@ export function RichTextEditor({ value, onChange, placeholder, limit, className 
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={cn("p-1.5 rounded-md hover:bg-muted text-muted-foreground", editor.isActive('orderedList') && "bg-muted text-foreground")}
           title="Numbered List"
+          disabled={readOnly}
         >
           <ListOrderedIcon className="h-4 w-4" />
         </button>

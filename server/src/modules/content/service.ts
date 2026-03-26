@@ -7,28 +7,58 @@ import { NotFoundError } from '../../utils/errors.js';
 import type { GenerateContentInput, EditContentInput, ContentQueryInput } from './schema.js';
 import type { ContentDTO, PaginationMeta } from '@auto-social-ai/shared';
 
-import { contentGenerationQueue } from '../../queues/index.js';
+import { contentGenerationQueue, mediaGenerationQueue } from '../../queues/index.js';
 
 /** Generate content (async queue) */
 export async function generateContent(
     input: GenerateContentInput,
     userId: string,
     workspaceId: string,
-): Promise<{ content: Record<string, ContentDTO> }> {
+): Promise<{ content: Record<string, ContentDTO>; mediaAssetId?: string }> {
     const results: Record<string, ContentDTO> = {};
+    let mediaAssetId: string | undefined;
 
+    // 1. If media generation is requested, create a placeholder media asset
+    if (input.includeMedia) {
+        const media = await prisma.mediaAsset.create({
+            data: {
+                filename: `generating-${Date.now()}.png`,
+                originalName: 'AI Generated Draft',
+                mimeType: 'image/png',
+                size: 0,
+                url: 'generating...',
+                type: 'image',
+                source: 'ai_generated',
+                workspaceId,
+            }
+        });
+        mediaAssetId = media.id;
+
+        // Enqueue media generation
+        await mediaGenerationQueue.add('generate-media', {
+            mediaAssetId,
+            quote: input.topic, // Use topic as prompt
+            author: 'AI Architect',
+            theme: 'vivid',
+            style: 'vivid',
+            size: '1024x1024'
+        });
+    }
+
+    // 2. Create content records for each platform
     for (const platform of input.platforms) {
         const platformValue = platform.toLowerCase() as Platform;
         
         const content = await prisma.content.create({
             data: {
                 title: input.topic.slice(0, 50) + '...',
-                body: 'Generating...', // placeholder
+                body: 'AI is generating...', // placeholder
                 platform: platformValue,
                 status: 'draft',
                 tags: [],
                 authorId: userId,
                 workspaceId,
+                mediaAssetId,
             },
         });
 
@@ -44,7 +74,7 @@ export async function generateContent(
         results[platform] = toContentDTO(content);
     }
 
-    return { content: results };
+    return { content: results, mediaAssetId };
 }
 
 /** Refine existing content (improve/shorten/etc) */
@@ -174,6 +204,7 @@ function toContentDTO(content: Content): ContentDTO {
         tags: content.tags,
         workspaceId: content.workspaceId,
         authorId: content.authorId,
+        mediaAssetId: content.mediaAssetId || undefined,
         scheduledAt: null,
         createdAt: content.createdAt.toISOString(),
         updatedAt: content.updatedAt.toISOString(),

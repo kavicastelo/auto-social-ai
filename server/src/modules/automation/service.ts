@@ -3,7 +3,8 @@
 // =============================================================================
 
 import { prisma, type AutomationPipeline, type Platform, type PipelineStatus, type TriggerType } from '../../database/index.js';
-import { NotFoundError } from '../../utils/errors.js';
+import { NotFoundError, BadRequestError } from '../../utils/errors.js';
+import { getLimits, SubscriptionTier } from '../../config/plans.js';
 import { automationQueue } from '../../queues/index.js';
 import type { CreatePipelineInput, UpdatePipelineInput, AutomationQueryInput } from './schema.js';
 import type { AutomationPipelineDTO, PaginationMeta } from '@auto-social-ai/shared';
@@ -13,6 +14,21 @@ export async function createPipeline(
     input: CreatePipelineInput,
     workspaceId: string,
 ): Promise<AutomationPipelineDTO> {
+    // 1. Check workspace limits (Pipeline count)
+    const ownerMember = await prisma.workspaceMember.findFirst({
+        where: { workspaceId, role: 'owner' },
+        include: { user: true }
+    });
+
+    if (!ownerMember?.user) throw new BadRequestError('Workspace owner not found. Cannot verify limits.');
+
+    const limits = getLimits(ownerMember.user.subscriptionTier as SubscriptionTier);
+    const pipelineCount = await prisma.automationPipeline.count({ where: { workspaceId } });
+
+    if (pipelineCount >= limits.maxPipelinesPerWorkspace) {
+        throw new BadRequestError(`Subscription limit reached: Your current tier allows a maximum of ${limits.maxPipelinesPerWorkspace} pipelines per workspace.`);
+    }
+
     const pipeline = await prisma.automationPipeline.create({
         data: {
             name: input.name,

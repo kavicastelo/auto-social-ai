@@ -12,6 +12,7 @@ export const generateContentSchema = z.object({
     platforms: z.array(platformEnum).min(1, 'Select at least one platform'),
     tone: z.string().max(50).optional(),
     type: z.string().min(2, 'ContentType is required'),
+    includeMedia: z.boolean().optional(),
 });
 
 export const refineContentSchema = z.object({

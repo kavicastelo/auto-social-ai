@@ -3,7 +3,7 @@
 // =============================================================================
 
 import type { FastifyInstance } from 'fastify';
-import { authGuard } from '../../middleware/index.js';
+import { authGuard, rbacGuard } from '../../middleware/index.js';
 import * as controller from './controller.js';
 
 export async function contentRoutes(app: FastifyInstance): Promise<void> {
@@ -13,6 +13,8 @@ export async function contentRoutes(app: FastifyInstance): Promise<void> {
     app.post('/refine', controller.refine);
     app.get('/', controller.list);
     app.get('/:id', controller.getById);
-    app.patch('/:id', controller.edit);
-    app.delete('/:id', controller.remove);
+
+    // Modification routes restricted to admins/owners
+    app.patch<{ Params: { id: string } }>('/:id', { preHandler: [rbacGuard(['owner', 'admin'])] }, controller.edit);
+    app.delete<{ Params: { id: string } }>('/:id', { preHandler: [rbacGuard(['owner', 'admin'])] }, controller.remove);
 }

@@ -13,5 +13,6 @@ export async function schedulerRoutes(app: FastifyInstance): Promise<void> {
     app.patch('/:id', controller.update);
     app.get('/', controller.list);
     app.get('/:id', controller.getById);
+    app.post('/:id/approve', controller.approve);
     app.delete('/:id', controller.remove);
 }

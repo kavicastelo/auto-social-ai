@@ -63,6 +63,14 @@ const envSchema = z.object({
     TIKTOK_CLIENT_ID: z.string().optional(),
     TIKTOK_CLIENT_SECRET: z.string().optional(),
 
+    // Storage (S3/R2)
+    S3_ENDPOINT: z.string().optional(),
+    S3_REGION: z.string().default('auto'),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_BUCKET_NAME: z.string().default('creatoregene-media'),
+    S3_PUBLIC_DOMAIN: z.string().optional(),
+
     // Server URLs for callbacks
     SERVER_URL: z.string().url().default('http://localhost:3001'),
 });

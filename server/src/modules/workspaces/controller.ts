@@ -30,3 +30,8 @@ export async function addMember(request: FastifyRequest<{ Params: { id: string }
     await workspaceService.addMember(request.params.id, input, request.user.sub);
     sendSuccess(reply, null);
 }
+
+export async function agencyOverview(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const data = await workspaceService.getAgencyOverview(request.user.sub);
+    sendSuccess(reply, data);
+}

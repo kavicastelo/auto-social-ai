@@ -33,5 +33,14 @@ export const tiktokPublisher: SocialPublisher = {
                 error: error instanceof Error ? error.message : 'TikTok API error'
             };
         }
+    },
+
+    async fetchAnalytics(config: PublisherConfig, platformId: string) {
+        // Simulation for TikTok metrics
+        return {
+            engagement: Math.floor(Math.random() * 50) + 10,
+            reach: Math.floor(Math.random() * 500) + 200,
+            clicks: Math.floor(Math.random() * 15),
+        };
     }
 };

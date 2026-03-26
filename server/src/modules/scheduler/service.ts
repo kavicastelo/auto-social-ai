@@ -34,6 +34,7 @@ export async function createScheduledPost(
             workspaceId,
             scheduledAt,
             status: 'pending',
+            mediaAssetId: input.mediaAssetId || content.mediaAssetId, // Use explicit mediaId or fallback to content's paired media
         },
         include: { account: true },
     });
@@ -161,6 +162,45 @@ export async function cancelScheduledPost(id: string, workspaceId: string): Prom
     }
 }
 
+/** Approve a post that is pending_approval */
+export async function approveScheduledPost(id: string, workspaceId: string): Promise<ScheduledPostDTO> {
+    const post = await prisma.scheduledPost.findFirst({
+        where: { id, workspaceId },
+        include: { account: true, content: true },
+    });
+
+    if (!post) throw new NotFoundError('Scheduled Post');
+    if (post.status !== 'pending_approval') {
+        throw new BadRequestError(`Cannot approve post with status: ${post.status}`);
+    }
+
+    // If scheduledAt is in the past, move it to 2 minutes from now to ensure it fires correctly
+    let publishTime = post.scheduledAt;
+    if (publishTime <= new Date()) {
+        publishTime = new Date();
+        publishTime.setMinutes(publishTime.getMinutes() + 2);
+    }
+
+    const updated = await prisma.scheduledPost.update({
+        where: { id },
+        data: { 
+            status: 'queued',
+            scheduledAt: publishTime
+        },
+        include: { account: true },
+    });
+
+    // Enqueue for publishing
+    const delay = Math.max(0, publishTime.getTime() - Date.now());
+    await publishQueue.add(
+        'publish-post',
+        { scheduledPostId: post.id },
+        { delay, jobId: `publish-${post.id}` }
+    );
+
+    return toScheduledPostDTO(updated as any);
+}
+
 /** Map Prisma ScheduledPost to DTO */
 function toScheduledPostDTO(post: ScheduledPost & { account?: { platform: string }; content?: { body: string } }): ScheduledPostDTO {
     return {
@@ -169,6 +209,7 @@ function toScheduledPostDTO(post: ScheduledPost & { account?: { platform: string
         accountId: post.accountId,
         platform: (post.account?.platform ?? 'twitter') as ScheduledPostDTO['platform'],
         content: post.content?.body ?? '', // Added body text to DTO
+        mediaAssetId: post.mediaAssetId ?? null,
         scheduledAt: post.scheduledAt.toISOString(),
         publishedAt: post.publishedAt?.toISOString() ?? null,
         status: post.status as ScheduledPostDTO['status'],

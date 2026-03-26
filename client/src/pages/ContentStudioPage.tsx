@@ -26,9 +26,29 @@ export function ContentStudioPage() {
   const [tone, setTone] = useState('Professional');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['Twitter', 'LinkedIn']);
   const [contentType, setContentType] = useState('Standard Post');
+  const [includeMedia, setIncludeMedia] = useState(true);
 
   const [generatedContent, setGeneratedContent] = useState<Record<string, any>>({});
   const [activeTab, setActiveTab] = useState('Twitter');
+
+  const canModify = useMemo(() => {
+    return activeWorkspace?.role === 'owner' || activeWorkspace?.role === 'admin';
+  }, [activeWorkspace]);
+
+  // Query for media asset if present in the active draft
+  const activeMediaId = useMemo(() => {
+    return generatedContent[activeTab.toLowerCase()]?.mediaAssetId;
+  }, [generatedContent, activeTab]);
+
+  const { data: activeMedia } = useQuery({
+    queryKey: ['media-asset', activeMediaId],
+    queryFn: async () => {
+      const res = await api.get('/media');
+      return res.data.data.find((m: any) => m.id === activeMediaId);
+    },
+    enabled: !!activeMediaId,
+    refetchInterval: (query: any) => (query?.state?.data?.url === 'generating...' ? 3000 : false),
+  });
 
   const { data: accounts } = useQuery({
     queryKey: ['social-accounts', activeWorkspace?.id],
@@ -50,13 +70,14 @@ export function ContentStudioPage() {
         tone,
         platforms: selectedPlatforms.map(p => p.toLowerCase()),
         type: contentType,
+        includeMedia,
         workspaceId: activeWorkspace?.id
       });
       return response.data.data;
     },
     onSuccess: (data) => {
       const initialMap: Record<string, any> = {};
-      Object.keys(data.content).forEach(plat => {
+      Object.keys(data.content || {}).forEach(plat => {
         initialMap[plat.toLowerCase()] = {
           ...data.content[plat],
           status: 'draft',
@@ -70,7 +91,7 @@ export function ContentStudioPage() {
         const displayPlat = platforms.find(p => p.toLowerCase() === firstPlat.toLowerCase()) || firstPlat;
         setActiveTab(displayPlat);
       }
-      toast.success('AI is generating your content...');
+      toast.success(includeMedia ? 'AI is drafting your post and graphic...' : 'AI is generating your content...');
     }
   });
 
@@ -251,6 +272,18 @@ export function ContentStudioPage() {
               <option>Short Video Script</option>
             </select>
           </div>
+
+          <div className="pt-2">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className={cn(
+                "h-5 w-5 rounded-md border flex items-center justify-center transition-all",
+                includeMedia ? "bg-violet-500 border-violet-500 shadow-sm" : "bg-card border-input group-hover:border-violet-300"
+              )} onClick={() => setIncludeMedia(!includeMedia)}>
+                {includeMedia && <div className="h-1.5 w-1.5 bg-white rounded-full" />}
+              </div>
+              <span className="text-sm font-medium">Generate AI Image</span>
+            </label>
+          </div>
         </CardContent>
         <div className="p-4 md:p-6 pt-0 border-t border-border mt-auto bg-background shrink-0">
           <Button
@@ -300,7 +333,7 @@ export function ContentStudioPage() {
                   size="sm"
                   className="h-8 gap-1 md:gap-1.5 text-[10px] md:text-xs"
                   onClick={() => refineMutation.mutate('regenerate')}
-                  disabled={refineMutation.isPending || !generatedContent[activeTab.toLowerCase()]}
+                  disabled={!canModify || refineMutation.isPending || !generatedContent[activeTab.toLowerCase()]}
                 >
                   <RefreshCwIcon className={cn("h-3 w-3", refineMutation.isPending && "animate-spin")} />
                   <span className="hidden xs:inline">Regenerate</span>
@@ -310,7 +343,7 @@ export function ContentStudioPage() {
                   size="sm"
                   className="h-8 gap-1 md:gap-1.5 text-[10px] md:text-xs"
                   onClick={() => refineMutation.mutate('improve')}
-                  disabled={refineMutation.isPending || !generatedContent[activeTab.toLowerCase()]}
+                  disabled={!canModify || refineMutation.isPending || !generatedContent[activeTab.toLowerCase()]}
                 >
                   <Wand2Icon className="h-3 w-3" />
                   <span className="hidden xs:inline">Improve</span>
@@ -320,7 +353,7 @@ export function ContentStudioPage() {
                   size="sm"
                   className="h-8 gap-1 md:gap-1.5 text-[10px] md:text-xs"
                   onClick={() => refineMutation.mutate('shorten')}
-                  disabled={refineMutation.isPending || !generatedContent[activeTab.toLowerCase()]}
+                  disabled={!canModify || refineMutation.isPending || !generatedContent[activeTab.toLowerCase()]}
                 >
                   <ArrowDownToLineIcon className="h-3 w-3" />
                   <span className="hidden xs:inline">Shorten</span>
@@ -338,6 +371,19 @@ export function ContentStudioPage() {
                   </div>
                 </div>
 
+                {activeMedia && (
+                  <div className="border-b border-border bg-muted/5 relative aspect-video sm:aspect-[21/9] overflow-hidden group flex items-center justify-center">
+                    {activeMedia.url === 'generating...' ? (
+                      <div className="flex flex-col items-center gap-2">
+                         <RefreshCwIcon className="h-8 w-8 text-violet-500 animate-spin opacity-40" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500/60 animate-pulse">Architecting Graphic...</span>
+                      </div>
+                    ) : (
+                      <img src={activeMedia.url} alt="Post graphic" className="h-full w-full object-cover" />
+                    )}
+                  </div>
+                )}
+
                 <RichTextEditor
                   className="flex-1 border-0 rounded-none focus-within:ring-0 shadow-none border-t border-border overflow-y-auto"
                   value={generatedContent[activeTab.toLowerCase()]?.body || ''}
@@ -346,6 +392,7 @@ export function ContentStudioPage() {
                     [activeTab.toLowerCase()]: { ...prev[activeTab.toLowerCase()], body: val }
                   }))}
                   placeholder='Click "Generate Content" on the left to start...'
+                  readOnly={!canModify}
                   limit={
                     activeTab === 'Twitter' ? 280 :
                       activeTab === 'LinkedIn' ? 3000 :
@@ -386,7 +433,7 @@ export function ContentStudioPage() {
                   size="sm"
                   className="gap-2 flex-1 sm:flex-none justify-center shadow-lg shadow-primary/10"
                   onClick={() => scheduleMutation.mutate()}
-                  disabled={!generatedContent[activeTab.toLowerCase()] || scheduleMutation.isPending}
+                  disabled={!canModify || !generatedContent[activeTab.toLowerCase()] || scheduleMutation.isPending}
                 >
                   <CalendarIcon className="h-4 w-4" />
                   <span>{activeAccount ? (window.innerWidth < 640 ? 'Schedule' : 'Schedule Now') : 'Connect Account'}</span>

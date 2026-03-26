@@ -15,12 +15,13 @@ interface ContentJobData {
     platform: string;
     tone?: string;
     contentType: string;
+    suffix?: string;
 }
 
 export const contentWorker = new Worker<ContentJobData>(
     'content-generation',
     async (job: Job<ContentJobData>) => {
-        const { contentId, topic, platform, tone, contentType, action } = job.data as any;
+        const { contentId, topic, platform, tone, contentType, action, referenceMediaId, suffix } = job.data as any;
         const log = logger.child({ worker: 'content-generation', jobId: job.id, contentId });
 
         const platformLimits: Record<string, number> = {
@@ -83,8 +84,19 @@ STRICT LIMIT: The body must be under ${maxCharLimit} characters.`;
                         prompt = `Refine this post: ${currentBody}. ${jsonInstruction}`;
                 }
             } else {
-                prompt = `Write a ${tone || 'Professional'} ${contentType || 'post'} for ${platform} about the following topic:\n\n${topic}\n\n${jsonInstruction}`;
+                prompt = `Write a ${tone || 'Professional'} ${contentType || 'post'} for ${platform} about the following topic:\n\n${topic}`;
             }
+
+            // Append Media Context if mapped
+            if (referenceMediaId) {
+                const mediaAsset = await prisma.mediaAsset.findUnique({ where: { id: referenceMediaId } });
+                if (mediaAsset) {
+                    const tagsStr = mediaAsset.tags.length > 0 ? mediaAsset.tags.join(', ') : '';
+                    prompt += `\n\nWait! This post will be published alongside an accompanying media file (a ${mediaAsset.type} named ${mediaAsset.originalName}). ${tagsStr ? `It is visually tagged with: ${tagsStr}. ` : ''}Please ensure your caption perfectly frames and introduces this media item.`;
+                }
+            }
+            
+            prompt += `\n\n${jsonInstruction}`;
 
             const completion = await openai.chat.completions.create({
                 model: 'gpt-4o-mini',
@@ -107,17 +119,18 @@ STRICT LIMIT: The body must be under ${maxCharLimit} characters.`;
             }
 
             const generatedBody = result.body || result.content || 'Failed to generate content.';
+            const finalBody = suffix ? `${generatedBody}\n\n${suffix}` : generatedBody;
             const generatedTags = Array.isArray(result.tags) ? result.tags : [];
 
             // 2. Store in cache for 24 hours to avoid duplicate costs
             if (job.name !== 'refine-content') {
-                await redisConnection.set(cacheKey, JSON.stringify({ body: generatedBody, tags: generatedTags }), 'EX', 86400);
+                await redisConnection.set(cacheKey, JSON.stringify({ body: finalBody, tags: generatedTags }), 'EX', 86400);
             }
 
             await prisma.content.update({
                 where: { id: contentId },
                 data: {
-                    body: generatedBody,
+                    body: finalBody,
                     tags: generatedTags,
                     status: 'generated',
                 },

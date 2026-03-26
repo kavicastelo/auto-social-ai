@@ -38,3 +38,9 @@ export async function remove(request: FastifyRequest<{ Params: { id: string } }>
     await schedulerService.cancelScheduledPost(request.params.id, request.user.wsId);
     sendSuccess(reply, null);
 }
+
+/** POST /api/scheduler/:id/approve */
+export async function approve(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<void> {
+    const post = await schedulerService.approveScheduledPost(request.params.id, request.user.wsId);
+    sendSuccess(reply, post);
+}

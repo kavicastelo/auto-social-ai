@@ -65,6 +65,12 @@ export function Sidebar({
       path: '/analytics'
     },
     {
+      id: 'agency',
+      label: 'Agency Hub',
+      icon: SparklesIcon,
+      path: '/agency'
+    },
+    {
       id: 'media',
       label: 'Media Library',
       icon: ImageIcon,
@@ -87,7 +93,7 @@ export function Sidebar({
           </div>
           {(!isCollapsed || isMobileOpen) &&
             <span className="whitespace-nowrap font-bold tracking-tight text-foreground transition-opacity duration-300">
-              AutoSocial AI
+              CreatorGene
             </span>
           }
         </div>

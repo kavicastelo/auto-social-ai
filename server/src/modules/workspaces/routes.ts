@@ -7,6 +7,7 @@ export async function workspacesRoutes(app: FastifyInstance): Promise<void> {
 
     app.post('/', controller.create);
     app.get('/', controller.list);
+    app.get('/agency-overview', controller.agencyOverview);
     app.get('/:id', controller.getById);
     app.put('/:id', controller.update);
     app.post('/:id/members', controller.addMember);
